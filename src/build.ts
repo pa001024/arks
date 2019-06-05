@@ -16,13 +16,14 @@ const convertImage = async () => {
   const outdir = TARGET_PREFIX + "Texture2D/";
   await fs.ensureDir(outdir);
   const files = await fs.readdir(basedir);
+  const hasPathid = /#\d\d+/;
   const alphas = files
     .filter(name => name.includes("[alpha]"))
     .map(name => {
       const head = name.substr(0, name.indexOf("[alpha]"));
-      const tail = name.indexOf("#") > 0;
+      const tail = hasPathid.test(name);
       const re = new RegExp(`^${head}(?: #\\d+)?\\.png$`);
-      const origin = files.find(v => re.test(v) && v.indexOf("#") > 0 === tail);
+      const origin = files.find(v => re.test(v) && hasPathid.test(v) === tail);
       if (!origin) console.log(chalk.red("missing"), name, re);
       // origin img, alpha, outfilename
       return [origin, name, head + (tail ? "_new" : "") + ".png"];
