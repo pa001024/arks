@@ -6,6 +6,7 @@ import chalk from "chalk";
 import * as _ from "lodash";
 import { exec } from "child-process-promise";
 import * as path from "path";
+import { Character } from "./parser/char.i";
 
 const formatJSON = (src: any) => {
   return prettier.format(typeof src === "string" ? src : JSON.stringify(src), { parser: "json" });
@@ -40,8 +41,51 @@ const convertImage = async () => {
   }
 };
 
+const toLuaObject = (obj: any, padding = 0) => {
+  const pad = "    ".repeat(padding);
+  if (typeof obj === "object" && obj !== null) {
+    if (Array.isArray(obj)) {
+      const raw = obj.map(v => toLuaObject(v, padding)).join(", ");
+      return "{" + raw + "}";
+    } else {
+      const content = _.map(obj, (v, k) => {
+        if (v === null) return null;
+        if (k.match(/^\w[\d\w]*$/)) return pad + `${k} = ${toLuaObject(v, padding + 1)},\n`;
+        else return pad + `["${k}"] = ${toLuaObject(v)}\n`;
+      }).filter(v => v !== null);
+      return `{\n${content.join("")}${padding > 0 ? "    ".repeat(padding - 1) : ""}}`;
+    }
+  }
+  return JSON.stringify(obj);
+};
+
+const convertCharacterToLua = (characters: Character[]) => {
+  const charList = characters.map(c => `["${c.name}"] = ${toLuaObject(c, 3)}`);
+  const tmpl = `-- AUTOMATIC GENERATED, DO NOT EDIT
+-- see by https://github.com/pa001024/arks
+
+local CharacterData = {
+    ["IgnoreInCount"] = {},
+    ["Characters"] = {
+        ${charList.join(",\n        ")}
+    },
+}
+return CharacterData`;
+  return tmpl;
+};
+
+const convertCharacter = async () => {
+  const charTable = JSON.parse(await fs.readFile(TMP_PREFIX + "character_table.json", "utf-8"));
+  const charList = _.map(charTable, (v, id) => Object.assign({ id }, v)) as Character[];
+  const luaOutput = convertCharacterToLua(charList);
+  await fs.writeFile(TARGET_PREFIX + "CharacterData.lua", luaOutput);
+  await fs.writeFile(TMP_PREFIX + "character_array.json", formatJSON(charList));
+};
+
 export default async (fast = true) => {
-  console.log("[build] STEP1: convertImage Start");
-  await convertImage();
+  // console.log("[build] STEP1: convertImage Start");
+  // await convertImage();
+  console.log("[build] STEP2: convertCharacter Start");
+  await convertCharacter();
   console.log("[build] All Finished");
 };
