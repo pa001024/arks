@@ -33,7 +33,7 @@ export interface Character {
   maxPotentialLevel: number;
   /** 稀有度 0-5 */
   rarity: number;
-  /** 职业: PIONEER WARRIOR TANK SPECIAL SNIPER CASTER MEDIC SUPPORTER */
+  /** 职业: PIONEER WARRIOR TANK SPECIAL SNIPER CASTER MEDIC SUPPORT */
   profession: string;
   /** 基建技能 */
   trait?: Trait;
@@ -59,7 +59,8 @@ export enum Profession {
   SNIPER = "狙击",
   CASTER = "术士",
   MEDIC = "医疗",
-  SUPPORTER = "辅助",
+  SUPPORT = "辅助",
+  TOKEN = "召唤物",
 }
 
 export interface AllSkillLvlup {
