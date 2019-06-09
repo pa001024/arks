@@ -9,7 +9,7 @@ import * as path from "path";
 import { Character, Profession, UnlockCondition } from "./parser/char.i";
 import { HandBookTable, HandBook } from "./parser/handbook.i";
 import { SkillTable } from "./parser/skill.i";
-import { ItemTable } from "./parser/item.i";
+import { ItemTable, Item } from "./parser/item.i";
 import { SkinTable } from "./parser/skin.i";
 import { HandbookTeamTable } from "./parser/team.i";
 
@@ -86,18 +86,17 @@ const toLuaObject = (obj: any, padding = 0) => {
   return JSON.stringify(obj);
 };
 
-const convertCharacterToLua = (characters: Pick<Character, "name">[]) => {
-  const charList = characters.map(c => `["${c.name}"] = ${toLuaObject(c, 3)}`);
+const convertObjectToLua = (arr: { name: string }[], name: string, dataname = (name.endsWith("s") ? name.substr(0, name.length - 1) : name) + "Data") => {
+  const charList = arr.map(c => `["${c.name}"] = ${toLuaObject(c, 3)}`);
   const tmpl = `-- AUTOMATIC GENERATED, DO NOT EDIT
 -- see https://github.com/pa001024/arks
 
-local CharacterData = {
-    ["IgnoreInCount"] = {},
-    ["Characters"] = {
+local ${dataname} = {
+    ["${name}"] = {
         ${charList.join(",\n        ")}
     },
 }
-return CharacterData`;
+return ${dataname}`;
   return tmpl;
 };
 
@@ -378,11 +377,27 @@ const translateCharacter = (char: Character, handbook: HandBook) => {
   return dst;
 };
 
+interface ItemFlat {
+  name: string;
+  rarity: number;
+  iconid: string;
+}
+
+const translateItem = (item: Item) => {
+  return { name: item.name, rarity: item.rarity, iconid: item.iconId } as ItemFlat;
+};
+
+const convertItem = async () => {
+  const itemList = _.map(item_table.items, translateItem);
+  const luaOutput = convertObjectToLua(itemList, "Items");
+  await fs.writeFile(TARGET_PREFIX + "ItemData.lua", luaOutput);
+};
+
 const convertCharacter = async () => {
   const character_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/character_table.json", "utf-8"));
   const handbook_info_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/handbook_info_table.json", "utf-8")) as HandBookTable;
   const charList = _.map(character_table, (v, id) => translateCharacter(Object.assign({ id }, v), handbook_info_table.handbookDict[id]));
-  const luaOutput = convertCharacterToLua(charList);
+  const luaOutput = convertObjectToLua(charList, "Characters");
   await fs.writeFile(TARGET_PREFIX + "CharacterData.lua", luaOutput);
   await fs.writeFile(TMP_PREFIX + "character_array.json", formatJSON(charList));
 };
@@ -396,7 +411,9 @@ export default async (fast = true) => {
 
   console.log("[build] STEP1: convertCharacter Start");
   await convertCharacter();
-  console.log("[build] STEP2: convertImage Start");
+  console.log("[build] STEP2: convertItem Start");
+  await convertItem();
+  console.log("[build] STEP3: convertImage Start");
   await convertImage(fast);
   console.log("[build] All Finished");
 };
