@@ -12,12 +12,15 @@ import { SkillTable } from "./parser/skill.i";
 import { ItemTable, Item } from "./parser/item.i";
 import { SkinTable } from "./parser/skin.i";
 import { HandbookTeamTable } from "./parser/team.i";
+import { StageTable } from "./parser/state.i";
+import { purge } from "./common.util";
 
 // data cache
 let skill_table: SkillTable;
 let item_table: ItemTable;
 let skin_table: SkinTable;
 let handbook_team_table: HandbookTeamTable;
+let stage_table: StageTable;
 let collectedPic = new Set<string>();
 
 const formatJSON = (src: any) => {
@@ -381,10 +384,49 @@ interface ItemFlat {
   name: string;
   rarity: number;
   iconid: string;
+  description: string;
+  stackiconid: string;
+  usage: string;
+  obtainapproach: string;
+  itemtype: string;
+  dropBy: string;
+  craftBy: string;
 }
 
 const translateItem = (item: Item) => {
-  return { name: item.name, rarity: item.rarity, iconid: item.iconId } as ItemFlat;
+  return purge({
+    name: item.name,
+    rarity: item.rarity,
+    iconid: item.iconId,
+    description: item.description.replace(/\\n/g, "\n"),
+    stackiconid: item.stackIconId,
+    usage: item.usage,
+    obtainapproach: item.obtainApproach,
+    itemtype: item.itemType,
+    dropBy: item.stageDropList
+      .map(v => {
+        const key = `[[${stage_table.stages[v.stageId].code}]]`;
+        enum DropRateTable {
+          SOMETIMES = "罕见",
+          OFTEN = "小概率",
+          USUAL = "概率",
+          ALMOST = "大概率",
+          ALWAYS = "固定掉落",
+        }
+        const rate = DropRateTable[v.occPer];
+        return rate ? key + "," + rate : key;
+      })
+      .join(";"),
+    craftBy: item.buildingProductList
+      .map(v => {
+        enum RoomType {
+          MANUFACTURE = "制造站",
+          WORKSHOP = "加工站",
+        }
+        return RoomType[v.roomType];
+      })
+      .join(","),
+  }) as ItemFlat;
 };
 
 const convertItem = async () => {
@@ -408,6 +450,7 @@ export default async (fast = true) => {
   item_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/item_table.json", "utf-8"));
   skin_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/skin_table.json", "utf-8"));
   handbook_team_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/handbook_team_table.json", "utf-8"));
+  stage_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/stage_table.json", "utf-8"));
 
   console.log("[build] STEP1: convertCharacter Start");
   await convertCharacter();
