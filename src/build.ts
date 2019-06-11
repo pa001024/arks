@@ -14,6 +14,8 @@ import { SkinTable } from "./parser/skin.i";
 import { HandbookTeamTable } from "./parser/team.i";
 import { StageTable } from "./parser/state.i";
 import { purge } from "./common.util";
+import { promisify } from "util";
+const sizeOf: (file: string) => { width: number; height: number } = promisify(require("image-size"));
 
 // data cache
 let skill_table: SkillTable;
@@ -22,33 +24,68 @@ let skin_table: SkinTable;
 let handbook_team_table: HandbookTeamTable;
 let stage_table: StageTable;
 let collectedPic = new Set<string>();
+let charList: CharacterFlat[];
 
 const formatJSON = (src: any) => {
   return prettier.format(typeof src === "string" ? src : JSON.stringify(src), { parser: "json" });
 };
+
+enum SkinSeries {
+  "默认服装" = 1,
+}
 
 const convertImage = async (fast: boolean = true) => {
   const basedir = TMP_PREFIX + "Texture2D/";
   const outdir = TARGET_PREFIX + "Texture2D/";
   await fs.ensureDir(outdir);
   const files = await fs.readdir(basedir);
-  const hasPathid = /#\d\d+/;
-  const alphas = files
-    .filter(name => name.includes("[alpha]"))
-    .map(name => {
-      const head = name.substr(0, name.indexOf("[alpha]"));
-      if (!collectedPic.has(head)) return;
-      const tail = hasPathid.test(name);
-      const re = new RegExp(`^${head.replace("+", "\\+")}(?: #\\d+)?\\.png$`);
-      const origin = files.find(v => re.test(v) && hasPathid.test(v) === tail);
-      if (!origin) console.log(chalk.red("missing"), name, re);
-      // origin img, alpha, outfilename
-      return [origin, name, head + (tail ? "_new" : "") + ".png"];
-    })
-    .filter(Boolean);
-
-  for (let i = 0; i < alphas.length; i += 6) {
-    const group = alphas.slice(i, i + 6);
+  // const hasPathid = /#\d\d+/;
+  let mainFiles: [string, string, string][] = [];
+  for (let i = 0; i < files.length; i++) {
+    const name = files[i];
+    if (name.includes("[alpha]")) {
+      const size = await sizeOf(basedir + name);
+      if (size.width >= 1024 && size.height >= 1024) {
+        const head = name.substr(0, name.indexOf("[alpha]"));
+        const charName = head.match(/(char|token)_(\d+)_([A-Za-z0-9]+)/);
+        let outName = "";
+        if (charName) {
+          const skinTail = head.replace(`${charName[0]}_`, "").replace("#", "-");
+          const skinHead = skinTail.split("-")[0];
+          const skinHash = skinTail.split("-")[1];
+          const skinid = skinTail.length === head.length ? head : charName[0] + (skinHash ? "@" + skinHead + "#" + skinHash : "#" + skinTail);
+          const skin = skin_table.charSkins[skinid];
+          if (skin) {
+            const skinSeq = skinTail;
+            const idMap = {
+              "1+": 2,
+              "2": 3,
+            };
+            const fileName = charName[3] + "-" + (idMap[skinSeq] || skinSeq);
+            // console.log(fileName);
+            outName = fileName;
+          } else {
+            if (!fast) console.log(chalk.red("unknown skin"), head);
+          }
+          // outName
+        } else {
+          console.log(chalk.red("invaild file"), head);
+        }
+        const re = new RegExp(`^${head.replace("+", "\\+")}(?: #\\d+)?\\.png$`);
+        const origin = await Promise.all(files.filter(v => re.test(v)).map(async name => ({ name, ...(await sizeOf(basedir + name)) })));
+        const main = origin.find(v => v.height >= 1024);
+        if (!main) {
+          console.log(chalk.red("cant find file", name));
+        } else {
+          if (outName) mainFiles.push([main.name, name, outName[0].toUpperCase() + outName.substr(1) + ".png"]);
+        }
+      }
+    }
+  }
+  // 并行进程数
+  const STEP = 2;
+  for (let i = 0; i < mainFiles.length; i += STEP) {
+    const group = mainFiles.slice(i, i + STEP);
     await Promise.all(
       group.map(async ([origin, alpha, out]) => {
         if (await fs.pathExists(outdir + out)) {
@@ -438,13 +475,16 @@ const convertItem = async () => {
 const convertCharacter = async () => {
   const character_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/character_table.json", "utf-8"));
   const handbook_info_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/handbook_info_table.json", "utf-8")) as HandBookTable;
-  const charList = _.map(character_table, (v, id) => translateCharacter(Object.assign({ id }, v), handbook_info_table.handbookDict[id]));
+  charList = _.map(character_table, (v, id) => translateCharacter(Object.assign({ id }, v), handbook_info_table.handbookDict[id]));
+
+  await fs.writeFile(TARGET_PREFIX + "CharacterFlat.json", formatJSON(charList));
   const luaOutput = convertObjectToLua(charList, "Characters");
   await fs.writeFile(TARGET_PREFIX + "CharacterData.lua", luaOutput);
   await fs.writeFile(TMP_PREFIX + "character_array.json", formatJSON(charList));
 };
 
 export default async (fast = true) => {
+  fs.ensureDir(TARGET_PREFIX);
   // load data
   skill_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/skill_table.json", "utf-8"));
   item_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/item_table.json", "utf-8"));
