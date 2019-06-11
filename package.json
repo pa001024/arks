@@ -10,6 +10,7 @@
     "fetch": "ts-node src/index.ts fetch",
     "clean": "ts-node src/index.ts clean",
     "build": "ts-node src/index.ts build",
+    "sync": "ts-node src/index.ts sync",
     "build:all": "ts-node src/index.ts clean && ts-node src/index.ts fetch && ts-node src/index.ts",
     "dev": "ts-node-dev --respawn src/index.ts dev"
   },
@@ -20,10 +21,12 @@
     "dotenv": "^8.0.0",
     "fengari": "^0.1.4",
     "fengari-interop": "^0.1.2",
+    "form-data": "^2.3.3",
     "fs-extra": "^7.0.1",
     "image-size": "^0.7.4",
     "lodash": "^4.17.11",
     "prettier": "^1.17.0",
+    "querystring": "^0.2.0",
     "ts-node": "^8.0.3",
     "typescript": "^3.4.2"
   },
