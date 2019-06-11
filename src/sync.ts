@@ -6,11 +6,7 @@ import * as path from "path";
 
 require("dotenv").config();
 
-export default async () => {
-  const bot = new WikiBot("https://arknights.huijiwiki.com/", process.env.user, process.env.session);
-  await bot.getToken();
-  // 自动上传图片
-
+const uploadImage = async (bot: WikiBot) => {
   const files = await fs.readdir(TARGET_PREFIX + "Texture2D/");
   for (let i = 0; i < files.length; i++) {
     const file = TARGET_PREFIX + "Texture2D/" + files[i];
@@ -20,6 +16,37 @@ export default async () => {
       console.log("[sync]", chalk.green("uploading"), name);
       bot.uploadFile(file);
     }
+  }
+};
+
+const syncModuleData = async (bot: WikiBot, rawTitle: string, localFile: string) => {
+  const file = TARGET_PREFIX + localFile;
+  const localRaw = await fs.readFile(file, "utf-8");
+  if ((await bot.raw(rawTitle)) !== localRaw) {
+    console.log("[sync]", chalk.greenBright("diff detected:"), rawTitle);
+    await bot.edit({ title: rawTitle, text: localRaw });
+  }
+};
+
+const uploadModuleData = async (bot: WikiBot) => {
+  await syncModuleData(bot, "Module:Character/data", "CharacterData.lua");
+  await syncModuleData(bot, "Module:Item/data", "ItemData.lua");
+};
+
+export default async () => {
+  const bot = new WikiBot("https://arknights.huijiwiki.com/", process.env.user, process.env.session);
+  await bot.getToken();
+  const mode = process.argv[3] || "module";
+  // 自动上传图片
+  if (mode === "image") {
+    console.log("[sync] uploadImage start");
+    await uploadImage(bot);
+  }
+  // 同步模块数据
+  if (mode === "module") {
+    // const raw = await bot.raw("Module:Character/data");
+    console.log("[sync] uploadModuleData start");
+    await uploadModuleData(bot);
   }
   console.log("[sync] All Finished");
 };
