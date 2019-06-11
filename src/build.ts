@@ -34,6 +34,31 @@ enum SkinSeries {
   "默认服装" = 1,
 }
 
+const firstCase = (src: string) => {
+  return src[0].toUpperCase() + src.substr(1);
+};
+
+const toSkinFile = (head: string) => {
+  const charName = head.match(/(char|token|trap)_(\d+)_([A-Za-z0-9]+)/);
+  if (charName) {
+    const skinTail = head.replace(`${charName[0]}_`, "").replace("#", "-");
+    const skinHead = skinTail.split("-")[0];
+    const skinHash = skinTail.split("-")[1];
+    const skinid = skinTail.length === head.length ? head : charName[0] + (skinHash ? "@" + skinHead + "#" + skinHash : "#" + skinTail);
+    const skin = skin_table.charSkins[skinid];
+    if (skin) {
+      const skinSeq = skinTail;
+      const idMap = {
+        "1+": 2,
+        "2": 3,
+      };
+      const fileName = charName[3] + "-" + (idMap[skinSeq] || skinSeq);
+      return firstCase(fileName);
+    }
+  }
+  return;
+};
+
 const convertImage = async (fast: boolean = true) => {
   const basedir = TMP_PREFIX + "Texture2D/";
   const outdir = TARGET_PREFIX + "Texture2D/";
@@ -47,37 +72,15 @@ const convertImage = async (fast: boolean = true) => {
       const size = await sizeOf(basedir + name);
       if (size.width >= 1024 && size.height >= 1024) {
         const head = name.substr(0, name.indexOf("[alpha]"));
-        const charName = head.match(/(char|token)_(\d+)_([A-Za-z0-9]+)/);
-        let outName = "";
-        if (charName) {
-          const skinTail = head.replace(`${charName[0]}_`, "").replace("#", "-");
-          const skinHead = skinTail.split("-")[0];
-          const skinHash = skinTail.split("-")[1];
-          const skinid = skinTail.length === head.length ? head : charName[0] + (skinHash ? "@" + skinHead + "#" + skinHash : "#" + skinTail);
-          const skin = skin_table.charSkins[skinid];
-          if (skin) {
-            const skinSeq = skinTail;
-            const idMap = {
-              "1+": 2,
-              "2": 3,
-            };
-            const fileName = charName[3] + "-" + (idMap[skinSeq] || skinSeq);
-            // console.log(fileName);
-            outName = fileName;
-          } else {
-            if (!fast) console.log(chalk.red("unknown skin"), head);
-          }
-          // outName
-        } else {
-          console.log(chalk.red("invaild file"), head);
-        }
+        let outName = toSkinFile(head);
+        if (!outName && !fast) console.log(chalk.red("unknown skin"), head);
         const re = new RegExp(`^${head.replace("+", "\\+")}(?: #\\d+)?\\.png$`);
         const origin = await Promise.all(files.filter(v => re.test(v)).map(async name => ({ name, ...(await sizeOf(basedir + name)) })));
         const main = origin.find(v => v.height >= 1024);
         if (!main) {
           console.log(chalk.red("cant find file", name));
         } else {
-          if (outName) mainFiles.push([main.name, name, outName[0].toUpperCase() + outName.substr(1) + ".png"]);
+          if (outName) mainFiles.push([main.name, name, outName + ".png"]);
         }
       }
     }
@@ -155,9 +158,9 @@ interface EvolveCost {
 }
 
 interface SkinFlat {
-  id: string;
+  // id: string;
   name: string;
-  desc: string;
+  desc?: string;
   // 仅与主设不同时才会存在
   drawer?: string;
 }
@@ -404,9 +407,10 @@ const translateCharacter = (char: Character, handbook: HandBook) => {
     if (skins && skins.length > 0) {
       dst.skins = skins.map(v => {
         const skin = {
-          id: v.portraitId,
+          // id: v.portraitId,
           name: v.displaySkin.skinGroupName,
-          desc: v.displaySkin.content,
+          // desc: v.displaySkin.content,
+          file: toSkinFile(v.portraitId) + ".png",
         } as SkinFlat;
         collectedPic.add(v.portraitId);
         if (v.displaySkin.drawerName && v.displaySkin.drawerName.toLowerCase() !== dst.art.toLowerCase()) skin.drawer = v.displaySkin.drawerName;
@@ -451,7 +455,7 @@ const translateItem = (item: Item) => {
           ALWAYS = "固定掉落",
         }
         const rate = DropRateTable[v.occPer];
-        return rate ? key + "," + rate : key;
+        return (rate ? key + "," + rate : key) + ",";
       })
       .join(";"),
     craftBy: item.buildingProductList

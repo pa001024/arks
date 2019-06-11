@@ -60,7 +60,8 @@ export enum Profession {
   CASTER = "术士",
   MEDIC = "医疗",
   SUPPORT = "辅助",
-  TOKEN = "召唤物",
+  TOKEN = "召唤",
+  TRAP = "陷阱",
 }
 
 export interface AllSkillLvlup {
