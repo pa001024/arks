@@ -18,3 +18,13 @@ data parser
 cd tmp
 git clone https://github.com/Perfare/ArknightsGameData.git
 ```
+
+upload
+
+write your .env file, then `yarn sync`
+
+for example:
+```
+user=12*74
+session=o2mqh************89nc9fo
+```

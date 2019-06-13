@@ -3,9 +3,9 @@
   "exclude": ["node_modules"],
   "compilerOptions": {
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
+    // "paths": {
+    //   "@/*": ["src/*"]
+    // },
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "allowJs": true,

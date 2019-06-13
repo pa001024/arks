@@ -1,3 +1,7 @@
+export interface CharacterTable {
+  [key: string]: Character;
+}
+
 export interface Character {
   /** id */
   id: string;
