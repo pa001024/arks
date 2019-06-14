@@ -10,6 +10,7 @@ import { loadData, item_table, character_table, handbook_info_table } from "./da
 import { CharacterFlat, translateCharacter, toSkinFile } from "./parser/char";
 import { translateItem } from "./parser/item";
 import { convertObjectToLua, formatJSON } from "./util";
+import { translateStage } from "./parser/stage";
 const sizeOf: (file: string) => { width: number; height: number } = promisify(require("image-size"));
 
 let charList: CharacterFlat[];
@@ -78,6 +79,12 @@ const convertCharacter = async () => {
   await fs.writeFile(TMP_PREFIX + "character_array.json", formatJSON(charList));
 };
 
+const convertStage = async () => {
+  const stages = translateStage();
+  const luaOutput = convertObjectToLua(stages, "Stages");
+  await fs.outputFile(TARGET_PREFIX + "StageData.lua", luaOutput);
+};
+
 export default async (fast = true) => {
   fs.ensureDir(TARGET_PREFIX);
   await loadData();
@@ -86,7 +93,9 @@ export default async (fast = true) => {
   await convertCharacter();
   console.log("[build] STEP2: convertItem Start");
   await convertItem();
-  console.log("[build] STEP3: convertImage Start");
-  await convertImage(fast);
+  console.log("[build] STEP3: convertStage Start");
+  await convertStage();
+  console.log("[build] STEP4: convertImage Start");
+  if (!fast) await convertImage(fast);
   console.log("[build] All Finished");
 };

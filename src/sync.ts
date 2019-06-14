@@ -31,6 +31,7 @@ const syncModuleData = async (bot: WikiBot, rawTitle: string, localFile: string)
 const uploadModuleData = async (bot: WikiBot) => {
   await syncModuleData(bot, "Module:Character/data", "CharacterData.lua");
   await syncModuleData(bot, "Module:Item/data", "ItemData.lua");
+  await syncModuleData(bot, "Module:Stage/data", "StageData.lua");
 };
 
 export default async () => {
