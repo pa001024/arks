@@ -8,7 +8,8 @@ const main = async () => {
   } else if (process.argv[2] === "clean") {
     await clean();
   } else {
-    await build(process.argv[2] === "dev");
+    console.log(process.argv[3]);
+    await build(process.argv[3]);
   }
 };
 

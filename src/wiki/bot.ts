@@ -101,8 +101,13 @@ export class WikiBot {
 
   // 获取页面源码
   async raw(title: string) {
-    const rst = await this.client.get(this.RAW + encodeURI(title));
-    return rst.data as string;
+    try {
+      const rst = await this.client.get(this.RAW + encodeURI(title));
+      return rst.data as string;
+    } catch (e) {
+      console.log(e);
+      return "";
+    }
   }
 
   /** 搬运文件 */
@@ -132,6 +137,7 @@ export class WikiBot {
     form.append("format", "json");
     form.append("action", "upload");
     form.append("filename", name);
+    form.append("ignorewarnings", "true");
     form.append("token", this.token);
     form.append("file", file);
     let res = await this.client.post(url, form, {

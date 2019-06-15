@@ -16,9 +16,9 @@ const sizeOf: (file: string) => { width: number; height: number } = promisify(re
 
 let charList: CharacterFlat[];
 
-const convertImage = async (fast: boolean = true) => {
+const convertCharImage = async (fast = "") => {
   const basedir = TMP_PREFIX + "Texture2D/";
-  const outdir = TARGET_PREFIX + "Texture2D/";
+  const outdir = TARGET_PREFIX + "char/";
   await fs.ensureDir(outdir);
   const files = await fs.readdir(basedir);
   // const hasPathid = /#\d\d+/;
@@ -82,15 +82,16 @@ const convertCharacter = async () => {
   await fs.writeFile(TMP_PREFIX + "character_array.json", formatJSON(charList));
 };
 
-const convertStage = async (fast = true) => {
+const convertStage = async (cmd = "") => {
   const stages = translateStage();
   const stage_preview = _.map(stages, translateStagePreview);
-  if (!fast) {
+  if (cmd === "map") {
     await fs.ensureDir(TARGET_PREFIX + "maps");
     for (let i = 0; i < stage_preview.length; i++) {
       const [src, dist] = stage_preview[i];
-      if ((await fs.pathExists(src)) && !fs.pathExists(dist)) {
-        await exec(`magick convert "${path.resolve(src)}" -resize 512x288 "${dist}"`);
+      if ((await fs.pathExists(src)) && !(await fs.pathExists(dist))) {
+        console.log(chalk.green("[map] convert"), `${path.basename(src)} => ${path.basename(dist)}`);
+        await exec(`magick convert "${path.resolve(src)}" -resize 512x288! "${dist}"`);
       }
     }
   }
@@ -98,7 +99,7 @@ const convertStage = async (fast = true) => {
   await fs.outputFile(TARGET_PREFIX + "StageData.lua", luaOutput);
 };
 
-export default async (fast = true) => {
+export default async (cmd = "") => {
   fs.ensureDir(TARGET_PREFIX);
   await loadData();
 
@@ -107,10 +108,10 @@ export default async (fast = true) => {
   console.log("[build] STEP2: convertItem Start");
   await convertItem();
   console.log("[build] STEP3: convertStage Start");
-  await convertStage(fast);
+  await convertStage(cmd);
   console.log("[build] STEP4: convertEnemy Start");
   await convertEnemy();
   console.log("[build] STEP5: convertImage Start");
-  if (!fast) await convertImage(fast);
+  if (cmd === "char") await convertCharImage(cmd);
   console.log("[build] All Finished");
 };
