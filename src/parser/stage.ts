@@ -2,7 +2,7 @@ import * as _ from "lodash";
 import { stage_table, item_table, character_table, enemy_handbook_table } from "../data";
 import { DisplayDetailReward, LevelData } from "../data/stage.i";
 import { purge } from "../common.util";
-import { TMP_PREFIX } from "../var";
+import { TMP_PREFIX, TARGET_PREFIX } from "../var";
 import { pathExistsSync, readFileSync } from "fs-extra";
 
 interface StageFlat {
@@ -16,6 +16,8 @@ interface StageFlat {
   hardDesc: string;
   /** 推荐等级 */
   dangerLevel: string;
+  /** 预览 */
+  preview: string;
   /** 突袭关 */
   // hardStagedId?: string;
   /** 可演习 */
@@ -90,13 +92,26 @@ const translateStageEnemy = (levelId: string, id: string) => {
   return [];
 };
 
+export const translateStagePreview = (stage: StageFlat) => {
+  const raw = _.find(stage_table.stages, v => v.code === stage.name);
+  if (raw) {
+    const src = TMP_PREFIX + `Texture2D/assets/torappu/dynamicassets/arts/ui/stage/mappreviews/${raw.stageId}.png`;
+    const dist = TARGET_PREFIX + `maps/${stage.preview}.png`;
+    return [src, dist];
+  }
+  // 512*288
+};
+
 // 关卡数据
 export const translateStage = () => {
   return _.filter(stage_table.stages, v => !v.stageId.includes("#f#") && !!v.name && v.code !== "剿灭作战").map(main => {
     let dst = {} as StageFlat;
     const hard = main.hardStagedId ? stage_table.stages[main.hardStagedId] : null;
 
-    if (main.code) dst.name = main.code.trim();
+    if (main.code) {
+      dst.name = main.code.trim();
+      dst.preview = "MAP-" + dst.name;
+    }
     if (main.name) dst.alterName = main.name.trim();
     if (main.description) dst.description = main.description.replace(/\\n/g, "\n");
     if (hard && hard.description) dst.hardDesc = hard.description.replace("<@lv.fs>附加条件：</>\\n", "").replace(/\\n/g, "\n");

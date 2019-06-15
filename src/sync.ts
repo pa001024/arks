@@ -6,10 +6,10 @@ import * as path from "path";
 
 require("dotenv").config();
 
-const uploadImage = async (bot: WikiBot) => {
-  const files = await fs.readdir(TARGET_PREFIX + "Texture2D/");
+const uploadImage = async (dir: string, bot: WikiBot) => {
+  const files = await fs.readdir(TARGET_PREFIX + dir + "/");
   for (let i = 0; i < files.length; i++) {
-    const file = TARGET_PREFIX + "Texture2D/" + files[i];
+    const file = TARGET_PREFIX + dir + "/" + files[i];
     const name = path.basename(file);
     const url = await bot.getImageInfo(name);
     if (!url) {
@@ -32,6 +32,7 @@ const uploadModuleData = async (bot: WikiBot) => {
   await syncModuleData(bot, "Module:Character/data", "CharacterData.lua");
   await syncModuleData(bot, "Module:Item/data", "ItemData.lua");
   await syncModuleData(bot, "Module:Stage/data", "StageData.lua");
+  await syncModuleData(bot, "Module:Enemy/data", "EnemyData.lua");
 };
 
 export default async () => {
@@ -41,7 +42,11 @@ export default async () => {
   // 自动上传图片
   if (mode === "image") {
     console.log("[sync] uploadImage start");
-    await uploadImage(bot);
+    await uploadImage("Texture2D", bot);
+  }
+  if (mode === "map") {
+    console.log("[sync] uploadImage(map) start");
+    await uploadImage("maps", bot);
   }
   // 同步模块数据
   if (mode === "module") {

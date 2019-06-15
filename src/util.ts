@@ -26,7 +26,11 @@ export const toLuaObject = (obj: any, padding = 0) => {
   return JSON.stringify(obj);
 };
 
-export const convertObjectToLua = (arr: { name: string }[], name: string, dataname = (name.endsWith("s") ? name.substr(0, name.length - 1) : name) + "Data") => {
+export const convertObjectToLua = (
+  arr: { name: string }[],
+  name: string,
+  dataname = (name.endsWith("ies") ? name.substr(0, name.length - 3) + "y" : name.endsWith("s") ? name.substr(0, name.length - 1) : name) + "Data"
+) => {
   const charList = arr.map(c => `["${c.name}"] = ${toLuaObject(c, 3)}`);
   const tmpl = `-- AUTOMATIC GENERATED, DO NOT EDIT
 -- see https://github.com/pa001024/arks

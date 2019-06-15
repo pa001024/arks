@@ -6,11 +6,12 @@ import * as _ from "lodash";
 import { exec } from "child-process-promise";
 import * as path from "path";
 import { promisify } from "util";
-import { loadData, item_table, character_table, handbook_info_table } from "./data";
+import { loadData, item_table, character_table, handbook_info_table, enemy_handbook_table } from "./data";
 import { CharacterFlat, translateCharacter, toSkinFile } from "./parser/char";
 import { translateItem } from "./parser/item";
 import { convertObjectToLua, formatJSON } from "./util";
-import { translateStage } from "./parser/stage";
+import { translateStage, translateStagePreview } from "./parser/stage";
+import { translateEnemy } from "./parser/enemy";
 const sizeOf: (file: string) => { width: number; height: number } = promisify(require("image-size"));
 
 let charList: CharacterFlat[];
@@ -67,7 +68,9 @@ const convertItem = async () => {
 };
 
 const convertEnemy = async () => {
-  //
+  const enemyList = _.map(enemy_handbook_table, translateEnemy);
+  const luaOutput = convertObjectToLua(enemyList, "Enemies");
+  await fs.writeFile(TARGET_PREFIX + "EnemyData.lua", luaOutput);
 };
 
 const convertCharacter = async () => {
@@ -79,8 +82,18 @@ const convertCharacter = async () => {
   await fs.writeFile(TMP_PREFIX + "character_array.json", formatJSON(charList));
 };
 
-const convertStage = async () => {
+const convertStage = async (fast = true) => {
   const stages = translateStage();
+  const stage_preview = _.map(stages, translateStagePreview);
+  if (!fast) {
+    await fs.ensureDir(TARGET_PREFIX + "maps");
+    for (let i = 0; i < stage_preview.length; i++) {
+      const [src, dist] = stage_preview[i];
+      if ((await fs.pathExists(src)) && !fs.pathExists(dist)) {
+        await exec(`magick convert "${path.resolve(src)}" -resize 512x288 "${dist}"`);
+      }
+    }
+  }
   const luaOutput = convertObjectToLua(stages, "Stages");
   await fs.outputFile(TARGET_PREFIX + "StageData.lua", luaOutput);
 };
@@ -94,8 +107,10 @@ export default async (fast = true) => {
   console.log("[build] STEP2: convertItem Start");
   await convertItem();
   console.log("[build] STEP3: convertStage Start");
-  await convertStage();
-  console.log("[build] STEP4: convertImage Start");
+  await convertStage(fast);
+  console.log("[build] STEP4: convertEnemy Start");
+  await convertEnemy();
+  console.log("[build] STEP5: convertImage Start");
   if (!fast) await convertImage(fast);
   console.log("[build] All Finished");
 };
