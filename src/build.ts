@@ -107,7 +107,7 @@ const convertCharHandbook = async () => {
     }
     const name = character_table[char.charID].name;
     const toWikiText = (s: string) => {
-      return s.replace(/\n/g, "<br>");
+      return s.replace(/\n/g, "<br>").replace(/\. /g, ".&nbsp;");
     };
     return {
       title: `${name}/人员档案`,
@@ -140,8 +140,10 @@ export default async (cmd = "") => {
   await convertStage(cmd);
   console.log("[build] STEP4: convertEnemy Start");
   await convertEnemy();
-  console.log("[build] STEP5: convertImage Start");
-  if (cmd === "char") await convertCharImage(cmd);
+  if (cmd === "char") {
+    console.log("[build] STEP5: convertImage Start");
+    await convertCharImage(cmd);
+  }
   console.log("[build] STEP6: convertCharHandbook Start");
   await convertCharHandbook();
   console.log("[build] All Finished");
