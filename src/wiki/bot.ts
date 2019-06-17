@@ -105,7 +105,7 @@ export class WikiBot {
       const rst = await this.client.get(this.RAW + encodeURI(title));
       return rst.data as string;
     } catch (e) {
-      console.log(e);
+      if (e.message !== "Request failed with status code 404") console.log(e.message);
       return "";
     }
   }

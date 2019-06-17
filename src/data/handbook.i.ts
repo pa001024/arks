@@ -1,8 +1,8 @@
-export interface HandBookTable {
-  handbookDict: { [key: string]: HandBook };
+export interface HandBookInfoTable {
+  handbookDict: { [key: string]: HandBookInfo };
 }
 
-export interface HandBook {
+export interface HandBookInfo {
   charID: string;
   drawName: string;
   infoName: string;
@@ -10,7 +10,7 @@ export interface HandBook {
 }
 
 export interface StoryTextAudio {
-  stories: Story[];
+  stories: [Story];
   storyTitle: string;
   unLockorNot: boolean;
 }

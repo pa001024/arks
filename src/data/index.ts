@@ -5,13 +5,13 @@ import { ItemTable } from "./item.i";
 import { SkinTable } from "./skin.i";
 import { HandbookTeamTable } from "./team.i";
 import { StageTable } from "./stage.i";
-import { HandBookTable } from "./handbook.i";
+import { HandBookInfoTable } from "./handbook.i";
 import { CharacterTable } from "./char.i";
 import { EnemyDatabase, EnemyTable, EnemyHandbookTable } from "./enemy.i";
 
 // data cache
 export let character_table: CharacterTable;
-export let handbook_info_table: HandBookTable;
+export let handbook_info_table: HandBookInfoTable;
 export let handbook_team_table: HandbookTeamTable;
 export let item_table: ItemTable;
 export let skill_table: SkillTable;

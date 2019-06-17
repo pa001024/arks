@@ -31,20 +31,36 @@ const uploadImage = async (dir: string, bot: WikiBot, force = false) => {
   }
 };
 
-const syncModuleData = async (bot: WikiBot, rawTitle: string, localFile: string) => {
-  const file = TARGET_PREFIX + localFile;
-  const localRaw = await fs.readFile(file, "utf-8");
-  if ((await bot.raw(rawTitle)) !== localRaw) {
+const syncPage = async (bot: WikiBot, rawTitle: string, text: string) => {
+  if ((await bot.raw(rawTitle)) !== text) {
     console.log("[sync]", chalk.greenBright("diff detected:"), rawTitle);
-    await bot.edit({ title: rawTitle, text: localRaw });
+    await bot.edit({ title: rawTitle, text });
   }
 };
 
+const syncPageFromFile = async (bot: WikiBot, rawTitle: string, localFile: string) => {
+  const file = TARGET_PREFIX + localFile;
+  const localRaw = await fs.readFile(file, "utf-8");
+  await syncPage(bot, rawTitle, localRaw);
+};
+
 const uploadModuleData = async (bot: WikiBot) => {
-  await syncModuleData(bot, "Module:Character/data", "CharacterData.lua");
-  await syncModuleData(bot, "Module:Item/data", "ItemData.lua");
-  await syncModuleData(bot, "Module:Stage/data", "StageData.lua");
-  await syncModuleData(bot, "Module:Enemy/data", "EnemyData.lua");
+  await syncPageFromFile(bot, "Module:Character/data", "CharacterData.lua");
+  await syncPageFromFile(bot, "Module:Item/data", "ItemData.lua");
+  await syncPageFromFile(bot, "Module:Stage/data", "StageData.lua");
+  await syncPageFromFile(bot, "Module:Enemy/data", "EnemyData.lua");
+};
+
+interface Page {
+  title: string;
+  text: string;
+}
+const syncMultiPages = async (bot: WikiBot, file: string) => {
+  const pages = JSON.parse(await fs.readFile(TARGET_PREFIX + file, "utf-8")) as Page[];
+  for (let i = 0; i < pages.length; i++) {
+    const page = pages[i];
+    await syncPage(bot, page.title, page.text);
+  }
 };
 
 export default async () => {
@@ -69,6 +85,11 @@ export default async () => {
     // const raw = await bot.raw("Module:Character/data");
     console.log("[sync] uploadModuleData start");
     await uploadModuleData(bot);
+  }
+  // 同步
+  if (mode === "book") {
+    console.log("[sync] sync CharHandbook.json start");
+    await syncMultiPages(bot, "CharHandbook.json");
   }
   console.log("[sync] All Finished");
 };

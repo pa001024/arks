@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import { UnlockCondition, Character, Profession } from "../data/char.i";
-import { HandBook } from "../data/handbook.i";
+import { HandBookInfo } from "../data/handbook.i";
 import { handbook_team_table, item_table, skill_table, skin_table } from "../data";
 import { isEmpty, firstCase } from "../util";
 import chalk from "chalk";
@@ -168,7 +168,7 @@ export const toSkinFile = (head: string) => {
 };
 
 // 转换数据到需要的形式
-export const translateCharacter = (char: Character, handbook: HandBook) => {
+export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
   let dst = {} as CharacterFlat;
   // base
   [

@@ -99,6 +99,35 @@ const convertStage = async (cmd = "") => {
   await fs.outputFile(TARGET_PREFIX + "StageData.lua", luaOutput);
 };
 
+const convertCharHandbook = async () => {
+  const stories = _.map(handbook_info_table.handbookDict, char => {
+    if (!character_table[char.charID]) {
+      console.log(chalk.red("charid not found"), char.charID);
+      return;
+    }
+    const name = character_table[char.charID].name;
+    const toWikiText = (s: string) => {
+      return s.replace(/\n/g, "<br>");
+    };
+    return {
+      title: `${name}/人员档案`,
+      text: char.storyTextAudio
+        .map(story => {
+          const s = story.stories[0];
+          return `{{情报
+|storyTitle=${story.storyTitle}
+|storyText=${toWikiText(s.storyText)}
+|unLockType=${s.unLockType}
+|unLockParam=${s.unLockParam}
+|unLockString=${s.unLockString}
+}}`;
+        })
+        .join("\n"),
+    };
+  }).filter(Boolean);
+  await fs.writeFile(TARGET_PREFIX + "CharHandbook.json", formatJSON(stories));
+};
+
 export default async (cmd = "") => {
   fs.ensureDir(TARGET_PREFIX);
   await loadData();
@@ -113,5 +142,7 @@ export default async (cmd = "") => {
   await convertEnemy();
   console.log("[build] STEP5: convertImage Start");
   if (cmd === "char") await convertCharImage(cmd);
+  console.log("[build] STEP6: convertCharHandbook Start");
+  await convertCharHandbook();
   console.log("[build] All Finished");
 };
