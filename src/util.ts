@@ -6,21 +6,29 @@ export const toLuaObject = (obj: any, padding = 0) => {
     padn1 = padding > 0 ? "    ".repeat(padding - 1) : "";
   if (typeof obj === "object" && obj !== null) {
     if (Array.isArray(obj)) {
-      const hasObject = obj.some(v => typeof v === "object");
-      if (hasObject && obj.length > 1) {
-        const raw = obj.map(v => toLuaObject(v, padding + 1)).join(", ");
+      const isComplex = obj.some(v => typeof v === "object") ? obj.length > 3 : obj.length > 10;
+      if (isComplex) {
+        const raw = obj.map(v => toLuaObject(v, padding + 1)).join(`, \n${pad}`);
         return "{\n" + pad + raw + "\n" + padn1 + "}";
       } else {
         const raw = obj.map(v => toLuaObject(v, padding)).join(", ");
         return "{" + raw + "}";
       }
     } else {
+      const arr = _.filter(obj, v => v !== null);
+      const isComplex = arr.length > 2 || arr.some(v => typeof v === "object");
       const content = _.map(obj, (v, k) => {
         if (v === null) return null;
-        if (k.match(/^\w[\d\w]*$/)) return pad + `${k} = ${toLuaObject(v, padding + 1)},\n`;
-        else return pad + `["${k}"] = ${toLuaObject(v)}\n`;
+        if (isComplex) {
+          if (k.match(/^\w[\d\w]*$/)) return pad + `${k} = ${toLuaObject(v, padding + 1)},\n`;
+          else return pad + `["${k}"] = ${toLuaObject(v)},\n`;
+        } else {
+          if (k.match(/^\w[\d\w]*$/)) return `${k} = ${toLuaObject(v, padding + 1)}, `;
+          else return `["${k}"] = ${toLuaObject(v)}, `;
+        }
       }).filter(v => v !== null);
-      return `{\n${content.join("")}${padn1}}`;
+      if (isComplex) return `{\n${content.join("")}${padn1}}`;
+      else return `{ ${content.join("")}}`;
     }
   }
   return JSON.stringify(obj);
@@ -50,7 +58,7 @@ export const formatJSON = (src: any) => {
 
 export const isEmpty = (obj: object) => {
   if (Array.isArray(obj)) return obj.every(v => isEmpty(v));
-  return !obj || Object.keys(obj).length;
+  return !obj || (typeof obj === "object" && !Object.keys(obj).length);
 };
 
 export const firstCase = (src: string) => {

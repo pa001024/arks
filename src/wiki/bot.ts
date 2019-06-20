@@ -96,7 +96,7 @@ export class WikiBot {
   async edit(info: EditInfo) {
     const formdata = querystring.stringify({ action: "edit", format: "json", token: this.token, ...info });
     const rst = await this.client.post(this.API, formdata);
-    return rst.data.edit as EditResult;
+    return (rst.data.edit as EditResult) || rst.data;
   }
 
   // 获取页面源码

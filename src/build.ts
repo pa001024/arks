@@ -6,17 +6,18 @@ import * as _ from "lodash";
 import { exec } from "child-process-promise";
 import * as path from "path";
 import { promisify } from "util";
-import { loadData, item_table, character_table, handbook_info_table, enemy_handbook_table } from "./data";
+import { loadData, item_table, character_table, handbook_info_table, enemy_handbook_table, skill_table } from "./data";
 import { CharacterFlat, translateCharacter, toSkinFile } from "./parser/char";
 import { translateItem } from "./parser/item";
 import { convertObjectToLua, formatJSON } from "./util";
 import { translateStage, translateStagePreview } from "./parser/stage";
 import { translateEnemy } from "./parser/enemy";
+import { translateSkill } from "./parser/skill";
 const sizeOf: (file: string) => { width: number; height: number } = promisify(require("image-size"));
 
 let charList: CharacterFlat[];
 
-const convertCharImage = async (fast = "") => {
+const convertCharImage = async () => {
   const basedir = TMP_PREFIX + "Texture2D/";
   const outdir = TARGET_PREFIX + "char/";
   await fs.ensureDir(outdir);
@@ -30,7 +31,7 @@ const convertCharImage = async (fast = "") => {
       if (size.width >= 1024 && size.height >= 1024) {
         const head = name.substr(0, name.indexOf("[alpha]"));
         let outName = toSkinFile(head);
-        if (!outName && !fast) console.log(chalk.red("unknown skin"), head);
+        if (!outName) console.log(chalk.red("unknown skin"), head);
         const re = new RegExp(`^${head.replace("+", "\\+")}(?: #\\d+)?\\.png$`);
         const origin = await Promise.all(files.filter(v => re.test(v)).map(async name => ({ name, ...(await sizeOf(basedir + name)) })));
         const main = origin.find(v => v.height >= 1024);
@@ -102,7 +103,7 @@ const convertStage = async (cmd = "") => {
 const convertCharHandbook = async () => {
   const stories = _.map(handbook_info_table.handbookDict, char => {
     if (!character_table[char.charID]) {
-      console.log(chalk.red("charid not found"), char.charID);
+      console.log(chalk.red("[Convert Char Handbook] charid not found"), char.charID);
       return;
     }
     const name = character_table[char.charID].name;
@@ -128,6 +129,13 @@ const convertCharHandbook = async () => {
   await fs.writeFile(TARGET_PREFIX + "CharHandbook.json", formatJSON(stories));
 };
 
+const convertSkill = async () => {
+  const skills = _.map(skill_table, translateSkill);
+  const luaOutput = convertObjectToLua(skills, "Skills");
+  await fs.writeFile(TARGET_PREFIX + "SkillData.lua", luaOutput);
+  // await fs.writeFile(TARGET_PREFIX + "skill_array.json", formatJSON(skills));
+};
+
 export default async (cmd = "") => {
   fs.ensureDir(TARGET_PREFIX);
   await loadData();
@@ -142,9 +150,11 @@ export default async (cmd = "") => {
   await convertEnemy();
   if (cmd === "char") {
     console.log("[build] STEP5: convertImage Start");
-    await convertCharImage(cmd);
+    await convertCharImage();
   }
   console.log("[build] STEP6: convertCharHandbook Start");
   await convertCharHandbook();
+  console.log("[build] STEP7: convertSkill Start");
+  await convertSkill();
   console.log("[build] All Finished");
 };

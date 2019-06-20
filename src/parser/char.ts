@@ -1,17 +1,20 @@
 import * as _ from "lodash";
-import { UnlockCondition, Character, Profession } from "../data/char.i";
+import { Character, Profession } from "../data/char.i";
 import { HandBookInfo } from "../data/handbook.i";
-import { handbook_team_table, item_table, skill_table, skin_table } from "../data";
+import { handbook_team_table, item_table, skill_table, skin_table, char_extra_table } from "../data";
 import { isEmpty, firstCase } from "../util";
 import chalk from "chalk";
 
 interface SkillFlat {
   name: string;
-  unlockCond: UnlockCondition;
+  phase: number;
+  level?: number;
+  masterCost?: EvolveCost[][];
 }
 interface TalentsFlat {
   name: string;
-  unlockCond: UnlockCondition;
+  phase: number;
+  level?: number;
 }
 
 interface EvolveCost {
@@ -110,7 +113,10 @@ export interface CharacterFlat {
   talents: TalentsFlat[];
 
   /** 精英化材料 */
-  evolveCost: EvolveCost[][];
+  evolveCost?: EvolveCost[][];
+
+  /** 潜能提升效果 */
+  potentialRanks?: string[];
 
   // 暂时用不到的数据
   // /** 最大部署数量 */
@@ -171,27 +177,22 @@ export const toSkinFile = (head: string) => {
 export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
   let dst = {} as CharacterFlat;
   // base
-  [
-    "id",
-    "name",
-    "rarity",
-    "description",
-    "canUseGeneralPotentialItem",
-    "potentialItemId",
-    // "team",
-    "displayNumber",
-    "appellation",
-    "position",
-    "tagList",
-    "displayLogo",
-    "itemUsage",
-    "itemDesc",
-    "itemObtainApproach",
-    "maxPotentialLevel",
-    "tokenKey",
-  ].forEach(key => {
-    dst[key] = char[key];
-  });
+  dst.id = char.id;
+  dst.name = char.name;
+  dst.rarity = char.rarity;
+  if (char.description) dst.description = char.description.replace(/\\n/g, "\n");
+  if (!char.canUseGeneralPotentialItem) dst.canUseGeneralPotentialItem = char.canUseGeneralPotentialItem;
+  if (char.potentialItemId) dst.potentialItemId = char.potentialItemId;
+  dst.displayNumber = char.displayNumber;
+  dst.appellation = char.appellation;
+  dst.position = char.position;
+  dst.tagList = char.tagList;
+  dst.displayLogo = char.displayLogo;
+  dst.itemUsage = char.itemUsage;
+  dst.itemDesc = char.itemDesc;
+  dst.itemObtainApproach = char.itemObtainApproach;
+  dst.maxPotentialLevel = char.maxPotentialLevel;
+  dst.tokenKey = char.tokenKey;
 
   if (char.team > -1) {
     dst.team = {
@@ -200,8 +201,10 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
       color: handbook_team_table[char.team + ""].color,
     };
   }
-
+  // 职业
   dst.profession = Profession[char.profession]; // 转换成中文
+  // 潜能
+  if (char.potentialRanks) dst.potentialRanks = char.potentialRanks.map(v => v.description);
 
   // 归并数据
   if (char.phases && char.phases[0] && char.phases[0].maxLevel) {
@@ -252,11 +255,25 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
       if (!v.skillId) return;
       const skill = skill_table[v.skillId];
       if (skill) {
-        dst.skills.push({
+        const s = {
           // id: skill.skillId,
           name: skill.levels[0].name,
-          unlockCond: v.unlockCond,
+          phase: v.unlockCond.phase,
+        } as SkillFlat;
+        if (v.unlockCond.level != 1) s.level = v.unlockCond.level;
+        // 专精材料
+        const cost = v.levelUpCostCond.map(v => {
+          // if (!v.levelUpCost) console.log(char.name);
+          return (
+            v.levelUpCost &&
+            v.levelUpCost.map(v => {
+              const item = item_table.items[v.id];
+              return { name: item.name, count: v.count };
+            })
+          );
         });
+        if (cost.length && cost[0] != null) s.masterCost = cost;
+        dst.skills.push(s);
       } else {
         console.log(chalk.red("[error]"), v.skillId, "skill not found");
       }
@@ -268,10 +285,13 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
     dst.talents = [];
     char.talents.forEach(talent => {
       if (!talent.candidates) return;
-      dst.talents.push({
+      const s = {
+        // id: skill.skillId,
         name: talent.candidates[0].name,
-        unlockCond: talent.candidates[0].unlockCondition,
-      });
+        phase: talent.candidates[0].unlockCondition.phase,
+      } as TalentsFlat;
+      if (talent.candidates[0].unlockCondition.level != 1) s.level = talent.candidates[0].unlockCondition.level;
+      dst.talents.push(s);
     });
   }
 
@@ -282,21 +302,25 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
   }
 
   // skin补充数据
-  {
-    const skins = _.filter(skin_table.charSkins, v => v.charId === char.id);
-    if (skins && skins.length > 0) {
-      dst.skins = skins.map(v => {
-        const skin = {
-          // id: v.portraitId,
-          name: v.displaySkin.skinGroupName,
-          // desc: v.displaySkin.content,
-          file: toSkinFile(v.portraitId) + ".png",
-        } as SkinFlat;
-        collectedPic.add(v.portraitId);
-        if (v.displaySkin.drawerName && v.displaySkin.drawerName.toLowerCase() !== dst.art.toLowerCase()) skin.drawer = v.displaySkin.drawerName;
-        return skin;
-      });
-    }
+  const skins = _.filter(skin_table.charSkins, v => v.charId === char.id);
+  if (skins && skins.length > 0) {
+    dst.skins = skins.map(v => {
+      const skin = {
+        // id: v.portraitId,
+        name: v.displaySkin.skinGroupName,
+        // desc: v.displaySkin.content,
+        file: toSkinFile(v.portraitId) + ".png",
+      } as SkinFlat;
+      collectedPic.add(v.portraitId);
+      if (v.displaySkin.drawerName && v.displaySkin.drawerName.toLowerCase() !== dst.art.toLowerCase()) skin.drawer = v.displaySkin.drawerName;
+      return skin;
+    });
+  }
+
+  // extra补充数据
+  const extra = char_extra_table[dst.name];
+  if (extra) {
+    Object.assign(dst, extra);
   }
   return dst;
 };

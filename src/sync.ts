@@ -31,17 +31,20 @@ const uploadImage = async (dir: string, bot: WikiBot, force = false) => {
   }
 };
 
-const syncPage = async (bot: WikiBot, rawTitle: string, text: string) => {
-  if ((await bot.raw(rawTitle)) !== text) {
-    console.log("[sync]", chalk.greenBright("diff detected:"), rawTitle);
-    await bot.edit({ title: rawTitle, text });
+const syncPage = async (bot: WikiBot, title: string, text: string) => {
+  if ((await bot.raw(title)) !== text) {
+    console.log("[sync]", chalk.greenBright("diff detected:"), title);
+    const rst = await bot.edit({ title, text });
+    if (rst.error) {
+      console.log(chalk.red("[syncPage]"), rst);
+    }
   }
 };
 
 const syncPageFromFile = async (bot: WikiBot, rawTitle: string, localFile: string) => {
   const file = TARGET_PREFIX + localFile;
   const localRaw = await fs.readFile(file, "utf-8");
-  await syncPage(bot, rawTitle, localRaw);
+  return await syncPage(bot, rawTitle, localRaw);
 };
 
 const uploadModuleData = async (bot: WikiBot) => {
@@ -49,6 +52,7 @@ const uploadModuleData = async (bot: WikiBot) => {
   await syncPageFromFile(bot, "Module:Item/data", "ItemData.lua");
   await syncPageFromFile(bot, "Module:Stage/data", "StageData.lua");
   await syncPageFromFile(bot, "Module:Enemy/data", "EnemyData.lua");
+  await syncPageFromFile(bot, "Module:Skill/data", "SkillData.lua");
 };
 
 interface Page {
