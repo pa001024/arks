@@ -61,7 +61,7 @@ export enum Profession {
   TANK = "重装",
   SPECIAL = "特种",
   SNIPER = "狙击",
-  CASTER = "术士",
+  CASTER = "术师",
   MEDIC = "医疗",
   SUPPORT = "辅助",
   TOKEN = "召唤",
