@@ -5,7 +5,8 @@ import { handbook_team_table, item_table, skill_table, skin_table, char_extra_ta
 import { isEmpty, firstCase } from "../util";
 import chalk from "chalk";
 
-interface SkillFlat {
+interface CharSkillFlat {
+  /** 技能中文名 */
   name: string;
   phase: number;
   level?: number;
@@ -15,6 +16,16 @@ interface TalentsFlat {
   name: string;
   phase: number;
   level?: number;
+  desc: string;
+  upgrades?: SkillUpgradeFlat[];
+}
+
+interface SkillUpgradeFlat {
+  name?: string;
+  phase: number;
+  level?: number;
+  desc: string;
+  potential: number;
 }
 
 interface EvolveCost {
@@ -108,7 +119,7 @@ export interface CharacterFlat {
   spRecoveryPerSec: number[];
 
   /** 技能 */
-  skills: SkillFlat[];
+  skills: CharSkillFlat[];
   /** 天赋 */
   talents: TalentsFlat[];
 
@@ -142,6 +153,9 @@ export interface CharacterFlat {
 
   // skin补充数据
   skins: SkinFlat[];
+
+  // skill补充数据
+  skillCost: EvolveCost[][];
 }
 
 const uniqArray = <T>(arr: T[]) => {
@@ -259,7 +273,7 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
           // id: skill.skillId,
           name: skill.levels[0].name,
           phase: v.unlockCond.phase,
-        } as SkillFlat;
+        } as CharSkillFlat;
         if (v.unlockCond.level != 1) s.level = v.unlockCond.level;
         // 专精材料
         const cost = v.levelUpCostCond.map(v => {
@@ -289,6 +303,18 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
         // id: skill.skillId,
         name: talent.candidates[0].name,
         phase: talent.candidates[0].unlockCondition.phase,
+        level: talent.candidates[0].unlockCondition.level,
+        desc: talent.candidates[0].description,
+        upgrades: talent.candidates.slice(1).map(v => {
+          const rst = {} as SkillUpgradeFlat;
+          if (talent.candidates[0].name != v.name) rst.name = v.name;
+          rst.phase = v.unlockCondition.phase;
+          if (!v.unlockCondition.level && v.unlockCondition.level != 1) rst.level = v.unlockCondition.level;
+          if (v.requiredPotentialRank) rst.potential = v.requiredPotentialRank;
+          rst.desc = v.description;
+
+          return rst;
+        }),
       } as TalentsFlat;
       if (talent.candidates[0].unlockCondition.level != 1) s.level = talent.candidates[0].unlockCondition.level;
       dst.talents.push(s);

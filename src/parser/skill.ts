@@ -1,7 +1,7 @@
 import * as _ from "lodash";
 import { Skill } from "src/data/skill.i";
 
-interface SkillFlat {
+export interface SkillFlat {
   name: string;
   /** 触发方式 0=被动 1=主动 2=自动 */
   skillType: number;
@@ -20,7 +20,7 @@ interface SkillLevel {
   /** sp回复速度 只有不等于0或1时才会被记录 */
   increment?: number;
   /** 最大充能次数 非0 */
-  maxChargeTime?: number;
+  // maxChargeTime?: number;
   description: string;
 }
 
@@ -37,7 +37,7 @@ export const translateSkill = (skill: Skill) => {
     if (lv.spData.spCost) level.spCost = lv.spData.spCost;
     if (lv.spData.initSp) level.initSp = lv.spData.initSp;
     if (lv.spData.increment != 0 && lv.spData.increment != 1) level.increment = lv.spData.increment;
-    if (lv.spData.maxChargeTime != 1 && lv.spData.maxChargeTime != 0) level.maxChargeTime = lv.spData.maxChargeTime;
+    // if (lv.spData.maxChargeTime != 1 && lv.spData.maxChargeTime != 0) level.maxChargeTime = lv.spData.maxChargeTime;
     const props = lv.blackboard.reduce((r, v) => ((r[v.key] = v.value), r), {});
     level.description = lv.description.replace(/\{-?(.+?)(:.+?)?\}/g, (m, key, format) => {
       if (format == ":0%") {

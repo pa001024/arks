@@ -81,8 +81,9 @@ export default async () => {
     console.log("[sync] uploadImage(map) start");
     await uploadImage("maps", bot, force);
   }
-  if (mode === "mappage ") {
-    console.log("[sync] editmappage start");
+  if (mode === "skill") {
+    console.log("[sync] skill start");
+    await syncMultiPages(bot, "CharSkill.json");
   }
   // 同步模块数据
   if (mode === "module") {

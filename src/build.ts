@@ -12,10 +12,11 @@ import { translateItem } from "./parser/item";
 import { convertObjectToLua, formatJSON } from "./util";
 import { translateStage, translateStagePreview } from "./parser/stage";
 import { translateEnemy } from "./parser/enemy";
-import { translateSkill } from "./parser/skill";
+import { translateSkill, SkillFlat } from "./parser/skill";
 const sizeOf: (file: string) => { width: number; height: number } = promisify(require("image-size"));
 
 let charList: CharacterFlat[];
+let skillMap: { [key: string]: SkillFlat };
 
 const convertCharImage = async () => {
   const basedir = TMP_PREFIX + "Texture2D/";
@@ -132,8 +133,40 @@ const convertCharHandbook = async () => {
 const convertSkill = async () => {
   const skills = _.map(skill_table, translateSkill);
   const luaOutput = convertObjectToLua(skills, "Skills");
+  skillMap = skills.reduce((r, v) => ((r[v.name] = v), r), {});
   await fs.writeFile(TARGET_PREFIX + "SkillData.lua", luaOutput);
-  // await fs.writeFile(TARGET_PREFIX + "skill_array.json", formatJSON(skills));
+  await fs.writeFile(TARGET_PREFIX + "SkillFlat.json", formatJSON(skills));
+};
+
+const convertCharSkill = async () => {
+  const filter = (arr: number[]) => {
+    if (arr.some(Boolean)) return arr;
+    return [];
+  };
+  const charskills = charList.map(v => {
+    if (!v.skills || !v.skillCost) return { title: v.name + "/技能天赋", text: "{{无技能}}" };
+    const skills = v.skills.map(v => _.merge(v, skillMap[v.name]));
+    const upMat = v.skillCost;
+    const text = skills
+      .map(skill => {
+        return `{{技能条
+|name=${skill.name}
+|icon=${skill.name}
+|spType=${skill.spType}
+|skillType=${skill.skillType}
+|elite=${skill.phase}
+|initSp=${filter(skill.levels.map(v => v.initSp)).join(",")}
+|spCost=${filter(skill.levels.map(v => v.spCost)).join(",")}
+|duration=${filter(skill.levels.map(v => v.duration)).join(",")}
+|description=${skill.levels.map(v => v.description).join(",")}
+|rankUp=${upMat.map(ma => ma.map(m => `${m.name}:${m.count}`).join(","))}
+}}`;
+      })
+      .join("\n");
+
+    return { title: v.name + "/技能天赋", text };
+  });
+  await fs.writeFile(TARGET_PREFIX + "CharSkill.json", formatJSON(charskills));
 };
 
 export default async (cmd = "") => {
@@ -156,5 +189,7 @@ export default async (cmd = "") => {
   await convertCharHandbook();
   console.log("[build] STEP7: convertSkill Start");
   await convertSkill();
+  console.log("[build] STEP7.5: convertCharSkill Start");
+  await convertCharSkill();
   console.log("[build] All Finished");
 };
