@@ -81,6 +81,10 @@ export default async () => {
     console.log("[sync] uploadImage(map) start");
     await uploadImage("maps", bot, force);
   }
+  if (mode === "skillimg") {
+    console.log("[sync] uploadImage(skill) start");
+    await uploadImage("skills", bot, force);
+  }
   if (mode === "skill") {
     console.log("[sync] skill start");
     await syncMultiPages(bot, "CharSkill.json");

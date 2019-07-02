@@ -12,7 +12,7 @@ import { translateItem } from "./parser/item";
 import { convertObjectToLua, formatJSON } from "./util";
 import { translateStage, translateStagePreview } from "./parser/stage";
 import { translateEnemy } from "./parser/enemy";
-import { translateSkill, SkillFlat } from "./parser/skill";
+import { translateSkill, SkillFlat, translateSkillIcon } from "./parser/skill";
 const sizeOf: (file: string) => { width: number; height: number } = promisify(require("image-size"));
 
 let charList: CharacterFlat[];
@@ -139,34 +139,25 @@ const convertSkill = async () => {
 };
 
 const convertCharSkill = async () => {
-  const filter = (arr: number[]) => {
-    if (arr.some(Boolean)) return arr;
-    return [];
-  };
   const charskills = charList.map(v => {
-    if (!v.skills || !v.skillCost) return { title: v.name + "/技能天赋", text: "{{无技能}}" };
-    const skills = v.skills.map(v => _.merge(v, skillMap[v.name]));
-    const upMat = v.skillCost;
-    const text = skills
-      .map(skill => {
-        return `{{技能条
-|name=${skill.name}
-|icon=${skill.name}
-|spType=${skill.spType}
-|skillType=${skill.skillType}
-|elite=${skill.phase}
-|initSp=${filter(skill.levels.map(v => v.initSp)).join(",")}
-|spCost=${filter(skill.levels.map(v => v.spCost)).join(",")}
-|duration=${filter(skill.levels.map(v => v.duration)).join(",")}
-|description=${skill.levels.map(v => v.description).join(",")}
-|rankUp=${upMat.map(ma => ma.map(m => `${m.name}:${m.count}`).join(","))}
-}}`;
-      })
-      .join("\n");
-
-    return { title: v.name + "/技能天赋", text };
+    return { title: v.name + "/技能天赋", text: "{{#invoke:Character|renderSkillGroup}}" };
   });
   await fs.writeFile(TARGET_PREFIX + "CharSkill.json", formatJSON(charskills));
+};
+
+const convertSkillIcon = async () => {
+  const skillNames = _.map(skill_table, translateSkillIcon);
+  await fs.ensureDir(TARGET_PREFIX + "skills");
+  for (let i = 0; i < skillNames.length; i++) {
+    const [id, name] = skillNames[i];
+    if (id && name) {
+      try {
+        await fs.copy(TMP_PREFIX + "Sprite/skill_icon_" + id + ".png", TARGET_PREFIX + "skills/" + name + ".png");
+      } catch {
+        console.log(chalk.red(`[ERROR]`), `icon not found: ${id} ${name}`);
+      }
+    }
+  }
 };
 
 export default async (cmd = "") => {
@@ -182,13 +173,17 @@ export default async (cmd = "") => {
   console.log("[build] STEP4: convertEnemy Start");
   await convertEnemy();
   if (cmd === "char") {
-    console.log("[build] STEP5: convertImage Start");
+    console.log("[build] STEP4.5: convertImage Start");
     await convertCharImage();
   }
-  console.log("[build] STEP6: convertCharHandbook Start");
+  console.log("[build] STEP5: convertCharHandbook Start");
   await convertCharHandbook();
-  console.log("[build] STEP7: convertSkill Start");
+  console.log("[build] STEP6: convertSkill Start");
   await convertSkill();
+  if (cmd === "skill") {
+    console.log("[build] 6.5: convertSkillIcon Start");
+    await convertSkillIcon();
+  }
   console.log("[build] STEP7.5: convertCharSkill Start");
   await convertCharSkill();
   console.log("[build] All Finished");

@@ -172,7 +172,7 @@ export class WikiBot {
   },
 };
      */
-    let api = `${this.API}?action=query&titles=File:${filename}&prop=imageinfo&&iiprop=url&format=json`;
+    let api = `${this.API}?action=query&titles=File:${encodeURI(filename)}&prop=imageinfo&&iiprop=url&format=json`;
     let rst = await this.apiCall(api);
     return rst && (rst.imageinfo[0].url as string);
   }

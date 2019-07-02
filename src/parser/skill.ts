@@ -24,6 +24,10 @@ interface SkillLevel {
   description: string;
 }
 
+export const translateSkillIcon = (skill: Skill) => {
+  return [skill.iconId || skill.skillId, skill.levels[0].name];
+};
+
 export const translateSkill = (skill: Skill) => {
   const dst = {} as SkillFlat;
   const base = skill.levels[0];
