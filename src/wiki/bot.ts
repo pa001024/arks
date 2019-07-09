@@ -32,6 +32,12 @@ interface EditInfo {
   bot?: boolean;
 }
 
+interface DeleteResult {
+  title: string;
+  reason: string;
+  logid: number;
+}
+
 export class WikiBot {
   user: string;
   session: string;
@@ -59,7 +65,7 @@ export class WikiBot {
       },
     });
   }
-  async apiCall(url: string) {
+  async apiPagination(url: string) {
     let res = await this.client.get(url);
     if (res) {
       let pages = res.data.query.pages;
@@ -72,12 +78,14 @@ export class WikiBot {
       return;
     }
   }
-  // 获取token
+
+  /** 获取token */
   async getToken() {
     const rst = await this.client.get(this.API + `?action=query&meta=tokens&format=json`);
     return (this.token = rst.data.query.tokens.csrftoken);
   }
-  // 执行ask
+
+  /** 执行ask */
   async ask(ask: string, offset = 0, limit = 50) {
     const url = this.API + `?action=ask&format=json&query=${encodeURI(ask + `|limit=${limit}|offset=${offset}`)}`;
     const rst = await this.client.get(url);
@@ -92,14 +100,14 @@ export class WikiBot {
     return results;
   }
 
-  // 编辑页面
+  /** 编辑或创建页面 */
   async edit(info: EditInfo) {
     const formdata = querystring.stringify({ action: "edit", format: "json", token: this.token, ...info });
     const rst = await this.client.post(this.API, formdata);
     return (rst.data.edit as EditResult) || rst.data;
   }
 
-  // 获取页面源码
+  /** 获取页面源码 */
   async raw(title: string) {
     try {
       const rst = await this.client.get(this.RAW + encodeURI(title));
@@ -108,6 +116,13 @@ export class WikiBot {
       if (e.message !== "Request failed with status code 404") console.log(e.message);
       return "";
     }
+  }
+
+  /** 删除页面 */
+  async delete(title: string, reason = "") {
+    const formdata = querystring.stringify({ action: "delete", format: "json", token: this.token, title, reason });
+    const rst = await this.client.post(this.API, formdata);
+    return (rst.data.delete as DeleteResult) || rst.data;
   }
 
   /** 搬运文件 */
@@ -173,7 +188,7 @@ export class WikiBot {
 };
      */
     let api = `${this.API}?action=query&titles=File:${encodeURI(filename)}&prop=imageinfo&&iiprop=url&format=json`;
-    let rst = await this.apiCall(api);
+    let rst = await this.apiPagination(api);
     return rst && (rst.imageinfo[0].url as string);
   }
 }

@@ -71,7 +71,7 @@ export default async () => {
   const bot = new WikiBot("https://arknights.huijiwiki.com/", process.env.user, process.env.session);
   await bot.getToken();
   const mode = process.argv[3] || "module";
-  const force = process.argv[4] === "force";
+  const force = process.argv[4] === "-f";
   // 自动上传图片
   if (mode === "char") {
     console.log("[sync] uploadImage(char) start");
@@ -85,10 +85,6 @@ export default async () => {
     console.log("[sync] uploadImage(skill) start");
     await uploadImage("skills", bot, force);
   }
-  if (mode === "skill") {
-    console.log("[sync] skill start");
-    await syncMultiPages(bot, "CharSkill.json");
-  }
   // 同步模块数据
   if (mode === "module") {
     // const raw = await bot.raw("Module:Character/data");
@@ -97,8 +93,10 @@ export default async () => {
   }
   // 同步
   if (mode === "book") {
-    console.log("[sync] sync CharHandbook.json start");
-    await syncMultiPages(bot, "CharHandbook.json");
+    console.log("[sync] sync char.*sync.json start");
+    await syncMultiPages(bot, "Char.sync.json");
+    await syncMultiPages(bot, "CharSkill.sync.json");
+    await syncMultiPages(bot, "CharHandbook.sync.json");
   }
   console.log("[sync] All Finished");
 };

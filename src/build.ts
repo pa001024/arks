@@ -127,7 +127,17 @@ const convertCharHandbook = async () => {
         .join("\n"),
     };
   }).filter(Boolean);
-  await fs.writeFile(TARGET_PREFIX + "CharHandbook.json", formatJSON(stories));
+
+  const chars = _.map(handbook_info_table.handbookDict, char => {
+    if (!character_table[char.charID]) return;
+    const name = character_table[char.charID].name;
+    return {
+      title: `${name}`,
+      text: `{{干员页面}}`,
+    };
+  }).filter(Boolean);
+  await fs.writeFile(TARGET_PREFIX + "Char.sync.json", formatJSON(chars));
+  await fs.writeFile(TARGET_PREFIX + "CharHandbook.sync.json", formatJSON(stories));
 };
 
 const convertSkill = async () => {
@@ -142,7 +152,7 @@ const convertCharSkill = async () => {
   const charskills = charList.map(v => {
     return { title: v.name + "/技能天赋", text: "{{#invoke:Character|renderSkillGroup}}" };
   });
-  await fs.writeFile(TARGET_PREFIX + "CharSkill.json", formatJSON(charskills));
+  await fs.writeFile(TARGET_PREFIX + "CharSkill.sync.json", formatJSON(charskills));
 };
 
 const convertSkillIcon = async () => {

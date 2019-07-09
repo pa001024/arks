@@ -63,14 +63,22 @@ function p.expendSkill(skill, charSkill, skillCost)
     util.map(
       util.concat(skillCost, charSkill.masterCost),
       function(lv)
-        if (lv.count or 1) > 1 then
-          return lv.count .. ';' .. lv.name
+        local items =
+          util.map(
+          lv,
+          function(item)
+            if (item.count or 1) > 1 then
+              return item.name .. '|' .. item.count
         end
-        return lv.name
+            return item.name
+          end
+        )
+        return table.concat(items, ',')
       end
     ),
-    '{{!}}'
+    ';'
   )
+  -- mw.log(rankUp) -- debug
 
   -- 转换成参数
   local function pickParm(parm)
