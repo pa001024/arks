@@ -1,8 +1,8 @@
 {
-  "name": "riven-mirror-data",
+  "name": "arks-data",
   "version": "1.0.0",
   "main": "src/index.ts",
-  "repository": "https://github.com/pa001024/riven-mirror-data",
+  "repository": "https://github.com/pa001024/arks",
   "author": "pa001024",
   "license": "MIT",
   "private": false,

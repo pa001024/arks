@@ -24,7 +24,7 @@ const uploadImage = async (dir: string, bot: WikiBot, force = false) => {
     const jobfiles = files.slice(i, i + TH).map(v => TARGET_PREFIX + dir + "/" + v);
     try {
       await Promise.all(jobfiles.map(job));
-    } catch {
+    } catch (e) {
       console.log(chalk.red("[sync] upload failed => [auto retry]"), jobfiles);
       await Promise.all(jobfiles.map(job));
     }
@@ -45,6 +45,22 @@ const syncPageFromFile = async (bot: WikiBot, rawTitle: string, localFile: strin
   const file = TARGET_PREFIX + localFile;
   const localRaw = await fs.readFile(file, "utf-8");
   return await syncPage(bot, rawTitle, localRaw);
+};
+
+const downloadPage = async (bot: WikiBot, rawTitle: string, localFile: string) => {
+  const text = await bot.raw(rawTitle);
+  await fs.writeFile(localFile, text);
+};
+
+const pullModules = async (bot: WikiBot) => {
+  const pull = (module: string) => {
+    return downloadPage(bot, `Module:${module}`, `src/module/${module}.lua`);
+  };
+  const list = "Enemy/Skill/Stage/Character/Item/Util".split("/");
+  for (const mo of list) {
+    console.log("pull", mo);
+    await pull(mo);
+  }
 };
 
 const uploadModuleData = async (bot: WikiBot) => {
@@ -97,6 +113,14 @@ export default async () => {
     await syncMultiPages(bot, "Char.sync.json");
     await syncMultiPages(bot, "CharSkill.sync.json");
     await syncMultiPages(bot, "CharHandbook.sync.json");
+  }
+  if (mode === "enemy") {
+    console.log("[sync] sync enemy.*sync.json start");
+    await syncMultiPages(bot, "Enemy.sync.json");
+  }
+  if (mode === "pull") {
+    console.log("[sync] pull modules start");
+    await pullModules(bot);
   }
   console.log("[sync] All Finished");
 };

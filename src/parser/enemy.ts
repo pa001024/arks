@@ -2,7 +2,7 @@ import * as _ from "lodash";
 import { enemy_table } from "../data";
 import { EnemyHandbook } from "src/data/enemy.i";
 
-interface EnemyFlat {
+export interface EnemyFlat {
   id: string;
   name: string;
   description: string;
@@ -31,6 +31,8 @@ interface EnemyFlat {
   baseAttackTime1?: number;
   massLevel1?: number;
   rangeRadius1?: number;
+  stunImmune?: boolean;
+  silenceImmune?: boolean;
 }
 
 export const translateEnemy = (enemyHandbook: EnemyHandbook) => {
@@ -51,7 +53,7 @@ export const translateEnemy = (enemyHandbook: EnemyHandbook) => {
       return;
     }
     const [level0, level1] = enemy;
-    const attributes = ["maxHp", "atk", "def", "magicResistance", "moveSpeed", "baseAttackTime", "massLevel"];
+    const attributes = ["maxHp", "atk", "def", "magicResistance", "moveSpeed", "baseAttackTime", "massLevel", "stunImmune", "silenceImmune"];
     attributes.forEach(v => {
       if (level0.enemyData.attributes[v].m_value) dst[v + "0"] = level0.enemyData.attributes[v].m_value;
     });

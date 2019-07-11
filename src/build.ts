@@ -11,7 +11,7 @@ import { CharacterFlat, translateCharacter, toSkinFile } from "./parser/char";
 import { translateItem } from "./parser/item";
 import { convertObjectToLua, formatJSON } from "./util";
 import { translateStage, translateStagePreview } from "./parser/stage";
-import { translateEnemy } from "./parser/enemy";
+import { translateEnemy, EnemyFlat } from "./parser/enemy";
 import { translateSkill, SkillFlat, translateSkillIcon } from "./parser/skill";
 const sizeOf: (file: string) => { width: number; height: number } = promisify(require("image-size"));
 
@@ -70,9 +70,17 @@ const convertItem = async () => {
 };
 
 const convertEnemy = async () => {
-  const enemyList = _.map(enemy_handbook_table, translateEnemy);
+  const enemyList = _.map(enemy_handbook_table, translateEnemy) as EnemyFlat[];
   const luaOutput = convertObjectToLua(enemyList, "Enemies");
   await fs.writeFile(TARGET_PREFIX + "EnemyData.lua", luaOutput);
+  await fs.writeFile(
+    TARGET_PREFIX + "Enemy.sync.json",
+    formatJSON(
+      enemyList.map(v => {
+        return { title: v.name, text: "{{InfoboxEnemy}}{{NavboxEnemy}}" };
+      })
+    )
+  );
 };
 
 const convertCharacter = async () => {
@@ -163,7 +171,7 @@ const convertSkillIcon = async () => {
     if (id && name) {
       try {
         await fs.copy(TMP_PREFIX + "Sprite/skill_icon_" + id + ".png", TARGET_PREFIX + "skills/" + name + ".png");
-      } catch {
+      } catch (e) {
         console.log(chalk.red(`[ERROR]`), `icon not found: ${id} ${name}`);
       }
     }

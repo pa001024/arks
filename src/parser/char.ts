@@ -294,6 +294,21 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
     });
     if (!dst.skills.length) delete dst.skills;
   }
+  // 技能升级
+  if (char.allSkillLvlup && char.allSkillLvlup.length) {
+    dst.skillCost = char.allSkillLvlup.map(rankup => {
+      if (!rankup.lvlUpCost) {
+        return [];
+      }
+      return rankup.lvlUpCost.map(cost => {
+        const item = item_table.items[cost.id];
+        return {
+          name: item.name,
+          count: cost.count,
+        };
+      });
+    });
+  }
   // 天赋
   if (char.talents) {
     dst.talents = [];

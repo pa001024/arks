@@ -8,13 +8,16 @@ local util = require('Module:Util')
 
 -- 获取角色数据 <Character>
 function p.getCharacter(charName)
+  if charName == '干员页面' then
+  	charName = '阿米娅'
+  end
   return CharacterData.Characters[charName]
 end
 
 -- 获取平面化的角色数据 <CharacterFlat>
 function p.getCharacterFlat(charName)
   -- 将数组形式的数据转换为逗号分隔数据
-  local raw = CharacterData['Characters'][charName]
+  local raw = p.getCharacter(charName)
   local dst = {}
   dst.displayLogo = raw.displayLogo
   dst.potentialItemId = raw.potentialItemId
@@ -69,7 +72,7 @@ function p.expendSkill(skill, charSkill, skillCost)
           function(item)
             if (item.count or 1) > 1 then
               return item.name .. '|' .. item.count
-        end
+            end
             return item.name
           end
         )
