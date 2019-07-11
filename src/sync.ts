@@ -3,6 +3,7 @@ import * as fs from "fs-extra";
 import { TARGET_PREFIX } from "./var";
 import chalk from "chalk";
 import * as path from "path";
+import { formatJSON } from "./util";
 
 require("dotenv").config();
 
@@ -71,6 +72,11 @@ const uploadModuleData = async (bot: WikiBot) => {
   await syncPageFromFile(bot, "Module:Skill/data", "SkillData.lua");
 };
 
+const purgeWithTemplate = async (bot: WikiBot, tplName: string) => {
+  const rst = await bot.purge({ generator: "transcludedin", titles: tplName, gtilimit: 500 });
+  console.log(formatJSON(rst));
+};
+
 interface Page {
   title: string;
   text: string;
@@ -121,6 +127,10 @@ export default async () => {
   if (mode === "pull") {
     console.log("[sync] pull modules start");
     await pullModules(bot);
+  }
+  if (mode === "purge") {
+    await purgeWithTemplate(bot, "template:NavboxEnemy");
+    await purgeWithTemplate(bot, "template:NavboxChar");
   }
   console.log("[sync] All Finished");
 };

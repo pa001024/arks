@@ -37,6 +37,11 @@ interface DeleteResult {
   reason: string;
   logid: number;
 }
+interface PurgeResult {
+  ns: number;
+  title: string;
+  purged: string;
+}
 
 export class WikiBot {
   user: string;
@@ -123,6 +128,13 @@ export class WikiBot {
     const formdata = querystring.stringify({ action: "delete", format: "json", token: this.token, title, reason });
     const rst = await this.client.post(this.API, formdata);
     return (rst.data.delete as DeleteResult) || rst.data;
+  }
+
+  /** 为指定标题刷新缓存 */
+  async purge(options: any) {
+    const formdata = querystring.stringify({ action: "purge", format: "json", ...options });
+    const rst = await this.client.post(this.API, formdata);
+    return (rst.data.purge as PurgeResult[]) || rst.data;
   }
 
   /** 搬运文件 */
