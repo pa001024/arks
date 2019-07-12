@@ -15,10 +15,8 @@ const uploadImage = async (dir: string, bot: WikiBot, force = false) => {
       const name = path.basename(file);
       const url = await bot.getImageInfo(name);
       if (!url || force) {
-        await bot.uploadFile(file);
-        console.log("[sync]", chalk.green("uploaded"), name);
-        // const rst = await bot.uploadFile(file);
-        // console.log(rst.upload);
+        const rst = await bot.uploadFile(file);
+        console.log("[sync]", name, rst.upload ? chalk.green("uploaded") + " " + rst.upload.result : chalk.red("error"));
       }
     };
 
@@ -123,6 +121,10 @@ export default async () => {
   if (mode === "enemy") {
     console.log("[sync] sync enemy.*sync.json start");
     await syncMultiPages(bot, "Enemy.sync.json");
+  }
+  if (mode === "stage") {
+    console.log("[sync] sync stage.*sync.json start");
+    await syncMultiPages(bot, "Stage.sync.json");
   }
   if (mode === "pull") {
     console.log("[sync] pull modules start");

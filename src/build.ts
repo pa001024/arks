@@ -107,6 +107,12 @@ const convertStage = async (cmd = "") => {
   }
   const luaOutput = convertObjectToLua(stages, "Stages");
   await fs.outputFile(TARGET_PREFIX + "StageData.lua", luaOutput);
+  await fs.outputFile(
+    TARGET_PREFIX + "Stage.sync.json",
+    formatJSON(stages.map(v => {
+      return { title: v.name, text: `{{InfoboxStage}}{{NavboxStage}}` };
+    }))
+  );
 };
 
 const convertCharHandbook = async () => {
