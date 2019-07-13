@@ -43,16 +43,25 @@ export const translateSkill = (skill: Skill) => {
     if (lv.spData.increment != 0 && lv.spData.increment != 1) level.increment = lv.spData.increment;
     // if (lv.spData.maxChargeTime != 1 && lv.spData.maxChargeTime != 0) level.maxChargeTime = lv.spData.maxChargeTime;
     const props = lv.blackboard.reduce((r, v) => ((r[v.key] = v.value), r), {});
-    level.description = lv.description.replace(/\{-?(.+?)(:.+?)?\}/g, (m, key: string, format) => {
-      key = key.toLowerCase();
-      if (format == ":0%") {
-        return (props[key] * 100).toFixed() + "%";
-      }
-      if (format == ":0.0%") {
-        return (props[key] * 100).toFixed(1) + "%";
-      }
-      return props[key];
-    });
+    level.description = lv.description
+      .replace(/\{-?(.+?)(:.+?)?\}/g, (m, key: string, format) => {
+        key = key.toLowerCase();
+        if (format == ":0%") {
+          return (props[key] * 100).toFixed() + "%";
+        }
+        if (format == ":0.0%") {
+          return (props[key] * 100).toFixed(1) + "%";
+        }
+        return props[key];
+      })
+      .replace(/攻击间隔(?:<@ba\.vdown>增大<\/>|<@ba\.vup>.*?缩短<\/>)/g, m => {
+        const val = props["base_attack_time"];
+        return m + `(${val >= 0 ? "+" : ""}${val})`;
+      })
+      .replace(/攻击前摇/g, m => {
+        const val = props["attack@stun"];
+        return m + `(${val >= 0 ? "+" : ""}${val})`;
+      });
     return level;
   });
   return dst;
