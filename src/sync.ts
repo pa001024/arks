@@ -133,6 +133,7 @@ export default async () => {
   if (mode === "purge") {
     await purgeWithTemplate(bot, "template:NavboxEnemy");
     await purgeWithTemplate(bot, "template:NavboxChar");
+    await purgeWithTemplate(bot, "template:NavboxStage");
   }
   console.log("[sync] All Finished");
 };

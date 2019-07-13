@@ -43,9 +43,13 @@ export const translateSkill = (skill: Skill) => {
     if (lv.spData.increment != 0 && lv.spData.increment != 1) level.increment = lv.spData.increment;
     // if (lv.spData.maxChargeTime != 1 && lv.spData.maxChargeTime != 0) level.maxChargeTime = lv.spData.maxChargeTime;
     const props = lv.blackboard.reduce((r, v) => ((r[v.key] = v.value), r), {});
-    level.description = lv.description.replace(/\{-?(.+?)(:.+?)?\}/g, (m, key, format) => {
+    level.description = lv.description.replace(/\{-?(.+?)(:.+?)?\}/g, (m, key: string, format) => {
+      key = key.toLowerCase();
       if (format == ":0%") {
         return (props[key] * 100).toFixed() + "%";
+      }
+      if (format == ":0.0%") {
+        return (props[key] * 100).toFixed(1) + "%";
       }
       return props[key];
     });
