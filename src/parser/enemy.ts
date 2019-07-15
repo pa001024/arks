@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import { enemy_table } from "../data";
-import { EnemyHandbook } from "src/data/enemy.i";
+import { EnemyHandbook } from "../data/enemy.i";
 
 export interface EnemyFlat {
   id: string;

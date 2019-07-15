@@ -9,6 +9,7 @@ import { HandBookInfoTable } from "./handbook.i";
 import { CharacterTable } from "./char.i";
 import { EnemyDatabase, EnemyTable, EnemyHandbookTable } from "./enemy.i";
 import { CharExtraTable } from "./extra.i";
+import { CharwordTable } from "./charword.i";
 
 // data cache
 export let character_table: CharacterTable;
@@ -19,6 +20,7 @@ export let skill_table: SkillTable;
 export let skin_table: SkinTable;
 export let stage_table: StageTable;
 export let enemy_handbook_table: EnemyHandbookTable;
+export let charword_table: CharwordTable;
 // export let enemy_database: EnemyDatabase;
 export let enemy_table: EnemyTable;
 export let char_extra_table: CharExtraTable;
@@ -33,6 +35,7 @@ export const loadData = async () => {
   skin_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/skin_table.json", "utf-8"));
   stage_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/stage_table.json", "utf-8"));
   enemy_handbook_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/enemy_handbook_table.json", "utf-8"));
+  charword_table = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/excel/charword_table.json", "utf-8"));
   const enemy_database = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/levels/enemydata/enemy_database.json", "utf-8")) as EnemyDatabase;
   enemy_table = enemy_database.enemies.reduce((r, v) => ((r[v.Key] = v.Value), r), {} as EnemyTable);
   char_extra_table = JSON.parse(await fs.readFile("src/patch/char.json", "utf-8"));

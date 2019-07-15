@@ -40,8 +40,8 @@ const syncPage = async (bot: WikiBot, title: string, text: string) => {
   }
 };
 
-const syncPageFromFile = async (bot: WikiBot, rawTitle: string, localFile: string) => {
-  const file = TARGET_PREFIX + localFile;
+const syncPageFromFile = async (bot: WikiBot, rawTitle: string, localFile: string, base = TARGET_PREFIX) => {
+  const file = base + localFile;
   const localRaw = await fs.readFile(file, "utf-8");
   return await syncPage(bot, rawTitle, localRaw);
 };
@@ -55,19 +55,30 @@ const pullModules = async (bot: WikiBot) => {
   const pull = (module: string) => {
     return downloadPage(bot, `Module:${module}`, `src/module/${module}.lua`);
   };
-  const list = "Enemy/Skill/Stage/Character/Item/Util".split("/");
+  const list = "Enemy/Skill/Stage/Character/Item/Util/Charword".split("/");
   for (const mo of list) {
     console.log("pull", mo);
     await pull(mo);
   }
 };
+const pushModules = async (bot: WikiBot) => {
+  const push = (module: string) => {
+    return syncPageFromFile(bot, `Module:${module}`, `src/module/${module}.lua`, "");
+  };
+  const list = "Enemy/Skill/Stage/Character/Item/Util/Charword".split("/");
+  for (const mo of list) {
+    await push(mo);
+  }
+};
 
 const uploadModuleData = async (bot: WikiBot) => {
-  await syncPageFromFile(bot, "Module:Character/data", "CharacterData.lua");
-  await syncPageFromFile(bot, "Module:Item/data", "ItemData.lua");
-  await syncPageFromFile(bot, "Module:Stage/data", "StageData.lua");
-  await syncPageFromFile(bot, "Module:Enemy/data", "EnemyData.lua");
-  await syncPageFromFile(bot, "Module:Skill/data", "SkillData.lua");
+  await Promise.all([
+    syncPageFromFile(bot, "Module:Character/data", "CharacterData.lua"),
+    syncPageFromFile(bot, "Module:Item/data", "ItemData.lua"),
+    syncPageFromFile(bot, "Module:Stage/data", "StageData.lua"),
+    syncPageFromFile(bot, "Module:Enemy/data", "EnemyData.lua"),
+    syncPageFromFile(bot, "Module:Skill/data", "SkillData.lua"),
+  ]);
 };
 
 const purgeWithTemplate = async (bot: WikiBot, tplName: string) => {
@@ -79,12 +90,17 @@ interface Page {
   title: string;
   text: string;
 }
-const syncMultiPages = async (bot: WikiBot, file: string) => {
-  const pages = JSON.parse(await fs.readFile(TARGET_PREFIX + file, "utf-8")) as Page[];
+const syncMultiPages = async (bot: WikiBot, file: string, base = TARGET_PREFIX) => {
+  const pages = JSON.parse(await fs.readFile(base + file, "utf-8")) as Page[];
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
     await syncPage(bot, page.title, page.text);
   }
+};
+
+const syncSinglePage = async (bot: WikiBot, title: string, file: string) => {
+  const text = await fs.readFile(TARGET_PREFIX + file, "utf-8");
+  await syncPage(bot, title, text);
 };
 
 export default async () => {
@@ -100,6 +116,9 @@ export default async () => {
   if (mode === "map") {
     console.log("[sync] uploadImage(map) start");
     await uploadImage("maps", bot, force);
+  }
+  if (mode === "cv") {
+    await uploadImage("cv", bot, force);
   }
   if (mode === "skillimg") {
     console.log("[sync] uploadImage(skill) start");
@@ -117,6 +136,7 @@ export default async () => {
     await syncMultiPages(bot, "Char.sync.json");
     await syncMultiPages(bot, "CharSkill.sync.json");
     await syncMultiPages(bot, "CharHandbook.sync.json");
+    await syncMultiPages(bot, "CharWord.sync.json");
   }
   if (mode === "enemy") {
     console.log("[sync] sync enemy.*sync.json start");
@@ -130,10 +150,17 @@ export default async () => {
     console.log("[sync] pull modules start");
     await pullModules(bot);
   }
+  if (mode === "push") {
+    console.log("[sync] push modules start");
+    await pushModules(bot);
+  }
   if (mode === "purge") {
     await purgeWithTemplate(bot, "template:NavboxEnemy");
     await purgeWithTemplate(bot, "template:NavboxChar");
     await purgeWithTemplate(bot, "template:NavboxStage");
+  }
+  if (mode === "tab") {
+    await syncSinglePage(bot, "Data:Charword.tab", "CharWord.tab.json");
   }
   console.log("[sync] All Finished");
 };

@@ -3,23 +3,26 @@ import { TMP_PREFIX, TARGET_PREFIX } from "./var";
 // import { convertImageName } from "./parser/image";
 import chalk from "chalk";
 import * as _ from "lodash";
-import { exec } from "child-process-promise";
+import async from "async";
+import { exec, spawn } from "child-process-promise";
 import * as path from "path";
 import { promisify } from "util";
-import { loadData, item_table, character_table, handbook_info_table, enemy_handbook_table, skill_table } from "./data";
+import { loadData, item_table, character_table, handbook_info_table, enemy_handbook_table, skill_table, charword_table } from "./data";
 import { CharacterFlat, translateCharacter, toSkinFile } from "./parser/char";
 import { translateItem } from "./parser/item";
-import { convertObjectToLua, formatJSON } from "./util";
+import { convertObjectToLua, formatJSON, json2Tab } from "./util";
 import { translateStage, translateStagePreview } from "./parser/stage";
 import { translateEnemy, EnemyFlat } from "./parser/enemy";
 import { translateSkill, SkillFlat, translateSkillIcon } from "./parser/skill";
+import { translateCharword } from "./parser/charword";
 const sizeOf: (file: string) => { width: number; height: number } = promisify(require("image-size"));
 
-let charList: CharacterFlat[];
+let charList: CharacterFlat[]; // 召唤物和干员
+let vCharList: CharacterFlat[]; // 干员
 let skillMap: { [key: string]: SkillFlat };
 
 const convertCharImage = async () => {
-  const basedir = TMP_PREFIX + "Texture2D/";
+  const basedir = TMP_PREFIX + "DB/Texture2D/";
   const outdir = TARGET_PREFIX + "char/";
   await fs.ensureDir(outdir);
   const files = await fs.readdir(basedir);
@@ -85,6 +88,7 @@ const convertEnemy = async () => {
 
 const convertCharacter = async () => {
   charList = _.map(character_table, (v, id) => translateCharacter(Object.assign({ id }, v), handbook_info_table.handbookDict[id]));
+  vCharList = charList.filter(v => v.displayNumber);
 
   await fs.writeFile(TARGET_PREFIX + "CharacterFlat.json", formatJSON(charList));
   const luaOutput = convertObjectToLua(charList, "Characters");
@@ -109,9 +113,11 @@ const convertStage = async (cmd = "") => {
   await fs.outputFile(TARGET_PREFIX + "StageData.lua", luaOutput);
   await fs.outputFile(
     TARGET_PREFIX + "Stage.sync.json",
-    formatJSON(stages.map(v => {
-      return { title: v.name, text: `{{InfoboxStage}}{{NavboxStage}}` };
-    }))
+    formatJSON(
+      stages.map(v => {
+        return { title: v.name, text: `{{InfoboxStage}}{{NavboxStage}}` };
+      })
+    )
   );
 };
 
@@ -162,11 +168,22 @@ const convertSkill = async () => {
   await fs.writeFile(TARGET_PREFIX + "SkillFlat.json", formatJSON(skills));
 };
 
+// sync
 const convertCharSkill = async () => {
-  const charskills = charList.map(v => {
+  const sync = vCharList.map(v => {
     return { title: v.name + "/技能天赋", text: "{{#invoke:Character|renderSkillGroup}}" };
   });
-  await fs.writeFile(TARGET_PREFIX + "CharSkill.sync.json", formatJSON(charskills));
+  await fs.writeFile(TARGET_PREFIX + "CharSkill.sync.json", formatJSON(sync));
+};
+const convertCharWord = async () => {
+  const charword = translateCharword();
+  const tab = json2Tab(_.map(charword));
+
+  const sync = vCharList.map(v => {
+    return { title: v.name + "/语音互动", text: "{{#invoke:Charword|charword}}<noinclude>[[分类:语音]]</noinclude>" };
+  });
+  await fs.writeFile(TARGET_PREFIX + "CharWord.sync.json", formatJSON(sync));
+  await fs.writeFile(TARGET_PREFIX + "CharWord.tab.json", JSON.stringify(tab));
 };
 
 const convertSkillIcon = async () => {
@@ -176,7 +193,7 @@ const convertSkillIcon = async () => {
     const [id, name] = skillNames[i];
     if (id && name) {
       try {
-        await fs.copy(TMP_PREFIX + "Sprite/skill_icon_" + id + ".png", TARGET_PREFIX + "skills/" + name + ".png");
+        await fs.copy(TMP_PREFIX + "DB/Sprite/skill_icon_" + id + ".png", TARGET_PREFIX + "skills/" + name + ".png");
       } catch (e) {
         console.log(chalk.red(`[ERROR]`), `icon not found: ${id} ${name}`);
       }
@@ -184,31 +201,55 @@ const convertSkillIcon = async () => {
   }
 };
 
+// 语音转换
+const convertCVAudio = async () => {
+  await fs.ensureDir(TARGET_PREFIX + "cv");
+  const files = _.map(charword_table, cw => {
+    const char = character_table[cw.charId];
+    return [
+      TMP_PREFIX + "DB/AudioClip/assets/torappu/dynamicassets/audio/sound_beta_2/voice/" + cw.voiceAsset.toLowerCase() + ".wav", //
+      TARGET_PREFIX + "cv/" + `${cw.charId.split("_")[2]}_${cw.voiceId}.ogg`,
+    ];
+  });
+  await async.forEachLimit(files, 10, async ([src, dst]) => {
+    console.log(chalk.blue("processing", "ffmpeg", ...["-i", src, "-c", "libvorbis", "-ab", "128k", dst]), dst);
+    await spawn("ffmpeg", ["-i", src, "-c", "libvorbis", dst]);
+  });
+};
+
 export default async (cmd = "") => {
   fs.ensureDir(TARGET_PREFIX);
   await loadData();
 
-  console.log("[build] STEP1: convertCharacter Start");
-  await convertCharacter();
-  console.log("[build] STEP2: convertItem Start");
-  await convertItem();
-  console.log("[build] STEP3: convertStage Start");
-  await convertStage(cmd);
-  console.log("[build] STEP4: convertEnemy Start");
-  await convertEnemy();
+  if (!cmd) {
+    console.log("[build] STEP1: convertCharacter Start");
+    await convertCharacter();
+    console.log("[build] STEP2: convertItem Start");
+    await convertItem();
+    console.log("[build] STEP3: convertStage Start");
+    await convertStage(cmd);
+    console.log("[build] STEP4: convertEnemy Start");
+    await convertEnemy();
+    console.log("[build] STEP5: convertCharHandbook Start");
+    await convertCharHandbook();
+    console.log("[build] STEP6: convertSkill Start");
+    await convertSkill();
+    console.log("[build] STEP7.5: convertCharSkill Start");
+    await convertCharSkill();
+    console.log("[build] STEP7.6: convertCharWord Start");
+    await convertCharWord();
+  }
   if (cmd === "char") {
     console.log("[build] STEP4.5: convertImage Start");
     await convertCharImage();
   }
-  console.log("[build] STEP5: convertCharHandbook Start");
-  await convertCharHandbook();
-  console.log("[build] STEP6: convertSkill Start");
-  await convertSkill();
   if (cmd === "skill") {
-    console.log("[build] 6.5: convertSkillIcon Start");
+    console.log("[build] STEP6.5: convertSkillIcon Start");
     await convertSkillIcon();
   }
-  console.log("[build] STEP7.5: convertCharSkill Start");
-  await convertCharSkill();
+  if (cmd === "cv") {
+    console.log("[build] STEP7.7: convertCVAudio Start");
+    await convertCVAudio();
+  }
   console.log("[build] All Finished");
 };

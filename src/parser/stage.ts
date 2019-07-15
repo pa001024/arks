@@ -95,7 +95,7 @@ const translateStageEnemy = (levelId: string, id: string) => {
 export const translateStagePreview = (stage: StageFlat) => {
   const raw = _.find(stage_table.stages, v => v.code === stage.name);
   if (raw) {
-    const src = TMP_PREFIX + `Texture2D/assets/torappu/dynamicassets/arts/ui/stage/mappreviews/${raw.stageId}.png`;
+    const src = TMP_PREFIX + `DB/Texture2D/assets/torappu/dynamicassets/arts/ui/stage/mappreviews/${raw.stageId}.png`;
     const dist = TARGET_PREFIX + `maps/${stage.preview}.png`;
     return [src, dist];
   }

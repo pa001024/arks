@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Skill } from "src/data/skill.i";
+import { Skill } from "../data/skill.i";
 
 export interface SkillFlat {
   name: string;

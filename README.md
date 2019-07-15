@@ -1,30 +1,45 @@
 # arknights data
 
-Data source and build tools
+arknights data parser and build tools
 
 ## usage
 
-install imagemagick first
+### requirement
 
-and `yarn`
+- [imagemagick](https://imagemagick.org/script/download.php)
+- nodejs v8.x or newer
+- yarn
+- git
+- ffmpeg
+- AssetStudio
 
-copy your files to tmp folder (in "Texture2D")
-
-then `yarn build`
-
-data parser
+### install
 
 ```bash
+mkdir tmp
 cd tmp
 git clone https://github.com/Perfare/ArknightsGameData.git
+cd ..
+# make your symlink to AssetStudio output folder
+# windows: mklink /j e:\dev\arks\tmp\DB e:\dev\arknights\DB
+ln -s path/to/asset/folder DB
+yarn
+yarn build
 ```
 
-upload
+### upload (sync)
 
-write your .env file, then `yarn sync`
+edit your .env file (you can find this info in your cookie of wiki)
+
+```bash
+cp .env.example .env
+vim .env
+```
 
 for example:
 ```
 user=12*74
 session=o2mqh************89nc9fo
 ```
+
+then `yarn sync`
