@@ -160,8 +160,8 @@ const convertCharHandbook = async () => {
 
 const convertSkill = async () => {
   const skills = _.map(skill_table, translateSkill);
-  const luaOutput = convertObjectToLua(skills, "Skills");
   skillMap = skills.reduce((r, v) => ((r[v.name] = v), r), {});
+  const luaOutput = convertObjectToLua(_.map(skillMap), "Skills");
   await fs.writeFile(TARGET_PREFIX + "SkillData.lua", luaOutput);
   await fs.writeFile(TARGET_PREFIX + "SkillFlat.json", formatJSON(skills));
 };
@@ -246,13 +246,13 @@ export default async (cmd = "") => {
   fs.ensureDir(TARGET_PREFIX);
   await loadData();
 
-  if (!cmd) {
+  if (!cmd || cmd === "all") {
     console.log("[build] STEP1: convertCharacter Start");
     await convertCharacter();
     console.log("[build] STEP2: convertItem Start");
     await convertItem();
     console.log("[build] STEP3: convertStage Start");
-    await convertStage(cmd);
+    await convertStage();
     console.log("[build] STEP4: convertEnemy Start");
     await convertEnemy();
     console.log("[build] STEP5: convertCharHandbook Start");
@@ -264,21 +264,25 @@ export default async (cmd = "") => {
     console.log("[build] STEP7.6: convertCharWord Start");
     await convertCharWord();
   }
-  if (cmd === "char") {
-    console.log("[build] STEP4.5: convertImage Start");
+  if (cmd === "char" || cmd === "all") {
+    console.log("[build] STEP1.5: convertCharImage Start");
     await convertCharImage();
   }
-  if (cmd === "skill") {
+  if (cmd === "item" || cmd === "all") {
+    console.log("[build] STEP2.5: convertItemImages Start");
+    await convertItemImages();
+  }
+  if (cmd === "map" || cmd === "all") {
+    console.log("[build] STEP3.5: convertStage(image) Start");
+    await convertStage(cmd);
+  }
+  if (cmd === "skill" || cmd === "all") {
     console.log("[build] STEP6.5: convertSkillIcon Start");
     await convertSkillIcon();
   }
-  if (cmd === "cv") {
+  if (cmd === "cv" || cmd === "all") {
     console.log("[build] STEP7.7: convertCVAudio Start");
     await convertCVAudio();
-  }
-  if (cmd === "item") {
-    console.log("[build] STEP1: convertItemImages Start");
-    await convertItemImages();
   }
   console.log("[build] All Finished");
 };

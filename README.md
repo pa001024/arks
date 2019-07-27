@@ -48,3 +48,40 @@ yarn sync
 yarn sync map
 yarn sync book
 ```
+
+### all commands
+```bash
+# build
+yarn build
+yarn build char
+yarn build map
+yarn build skill
+yarn build cv
+yarn build item
+
+# default+char+map+skill+cv+item
+yarn build all
+
+# module manage
+yarn sync pull
+yarn sync push
+
+# upload
+yarn sync
+yarn sync char
+yarn sync itemimg
+yarn sync map
+yarn sync cv
+yarn sync skillimg
+yarn sync book
+yarn sync enemy
+yarn sync stage
+yarn sync tab
+
+# default+char+itemimg+map+cv+skillimg+book+enemy+stage+tab
+yarn sync all
+
+# other
+yarn sync purge
+
+```

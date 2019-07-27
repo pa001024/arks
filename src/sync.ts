@@ -122,48 +122,7 @@ export default async (argv?: { [key: string]: any }) => {
   await bot.getToken();
   const mode = argv.mode;
   const force = argv.force;
-  // 自动上传图片
-  if (mode === "char") {
-    console.log("[sync] uploadImage(char) start");
-    await uploadImage("char", bot, force);
-  }
-  if (mode === "itemimg") {
-    console.log("[sync] uploadImage(item) start");
-    await uploadImage("items", bot, force, argv.skip);
-  }
-  if (mode === "map") {
-    console.log("[sync] uploadImage(map) start");
-    await uploadImage("maps", bot, force);
-  }
-  if (mode === "cv") {
-    await uploadImage("cv", bot, force);
-  }
-  if (mode === "skillimg") {
-    console.log("[sync] uploadImage(skill) start");
-    await uploadImage("skills", bot, force);
-  }
-  // 同步模块数据
-  if (mode === "module") {
-    // const raw = await bot.raw("Module:Character/data");
-    console.log("[sync] uploadModuleData start");
-    await uploadModuleData(bot);
-  }
-  // 同步
-  if (mode === "book") {
-    console.log("[sync] sync char.*sync.json start");
-    await syncMultiPages(bot, "Char.sync.json");
-    await syncMultiPages(bot, "CharSkill.sync.json");
-    await syncMultiPages(bot, "CharHandbook.sync.json");
-    await syncMultiPages(bot, "CharWord.sync.json");
-  }
-  if (mode === "enemy") {
-    console.log("[sync] sync enemy.*sync.json start");
-    await syncMultiPages(bot, "Enemy.sync.json");
-  }
-  if (mode === "stage") {
-    console.log("[sync] sync stage.*sync.json start");
-    await syncMultiPages(bot, "Stage.sync.json");
-  }
+  // 模块管理
   if (mode === "pull") {
     console.log("[sync] pull modules start");
     await pullModules(bot);
@@ -172,13 +131,55 @@ export default async (argv?: { [key: string]: any }) => {
     console.log("[sync] push modules start");
     await pushModules(bot);
   }
-  if (mode === "purge") {
+  // 自动上传图片
+  if (mode === "char" || mode === "all") {
+    console.log("[sync] uploadImage(char) start");
+    await uploadImage("char", bot, force);
+  }
+  if (mode === "itemimg" || mode === "all") {
+    console.log("[sync] uploadImage(item) start");
+    await uploadImage("items", bot, force, argv.skip);
+  }
+  if (mode === "map" || mode === "all") {
+    console.log("[sync] uploadImage(map) start");
+    await uploadImage("maps", bot, force);
+  }
+  if (mode === "cv" || mode === "all") {
+    await uploadImage("cv", bot, force);
+  }
+  if (mode === "skillimg" || mode === "all") {
+    console.log("[sync] uploadImage(skill) start");
+    await uploadImage("skills", bot, force);
+  }
+  // 同步模块数据
+  if (mode === "module" || mode === "all") {
+    // const raw = await bot.raw("Module:Character/data");
+    console.log("[sync] uploadModuleData start");
+    await uploadModuleData(bot);
+  }
+  // 同步
+  if (mode === "book" || mode === "all") {
+    console.log("[sync] sync char.*sync.json start");
+    await syncMultiPages(bot, "Char.sync.json");
+    await syncMultiPages(bot, "CharSkill.sync.json");
+    await syncMultiPages(bot, "CharHandbook.sync.json");
+    await syncMultiPages(bot, "CharWord.sync.json");
+  }
+  if (mode === "enemy" || mode === "all") {
+    console.log("[sync] sync enemy.*sync.json start");
+    await syncMultiPages(bot, "Enemy.sync.json");
+  }
+  if (mode === "stage" || mode === "all") {
+    console.log("[sync] sync stage.*sync.json start");
+    await syncMultiPages(bot, "Stage.sync.json");
+  }
+  if (mode === "tab" || mode === "all") {
+    await syncSinglePage(bot, "Data:Charword.tab", "CharWord.tab.json");
+  }
+  if (mode === "purge" || mode === "all") {
     await purgeWithTemplate(bot, "template:NavboxEnemy");
     await purgeWithTemplate(bot, "template:NavboxChar");
     await purgeWithTemplate(bot, "template:NavboxStage");
-  }
-  if (mode === "tab") {
-    await syncSinglePage(bot, "Data:Charword.tab", "CharWord.tab.json");
   }
   console.log("[sync] All Finished");
 };

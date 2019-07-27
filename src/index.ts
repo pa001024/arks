@@ -26,7 +26,7 @@ usage("$0 <cmd> [args]")
     {
       mode: {
         type: "string",
-        default: "",
+        default: "module",
         describe: "the mode name",
       },
       force: {
