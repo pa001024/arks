@@ -3,30 +3,44 @@ import * as fs from "fs-extra";
 import { TARGET_PREFIX } from "./var";
 import chalk from "chalk";
 import * as path from "path";
-import { formatJSON } from "./util";
+import { formatJSON, forEachLimit } from "./util";
 
 require("dotenv").config();
 
-const uploadImage = async (dir: string, bot: WikiBot, force = false) => {
+const uploadImage = async (dir: string, bot: WikiBot, force = false, skip = "") => {
   const files = await fs.readdir(TARGET_PREFIX + dir + "/");
-  const TH = 4;
+  const TH = 3;
+  let skipv = skip,
+    skipedFiles = 0;
+  if (force) console.log(chalk.red(`force mode enabled`));
+  if (skipv) console.log(chalk.green(`start skip to ${skip}`));
   for (let i = 0; i < files.length; i += TH) {
     const job = async (file: string) => {
       const name = path.basename(file);
-      const url = await bot.getImageInfo(name);
-      if (!url || force) {
-        const rst = await bot.uploadFile(file);
-        console.log("[sync]", name, rst.upload ? chalk.green("uploaded") + " " + rst.upload.result : chalk.red("error"));
+      if (skipv) {
+        ++skipedFiles;
+        if (skipv === name) {
+          console.log(chalk.green(`skipped ${skipedFiles}/${files.length} files`));
+          skipv = "";
+        }
+        return;
       }
+      let done = false;
+      do {
+        try {
+          if (force || !(await bot.getImageInfo(name))) {
+            const rst = await bot.uploadFile(file);
+            console.log("[sync]", name, rst.upload ? chalk.green("uploaded") + " " + rst.upload.result : chalk.red("error"));
+          }
+          done = true;
+        } catch (e) {
+          console.log(chalk.red("[sync] upload failed => [auto retry]"), name);
+        }
+      } while (!done);
     };
 
     const jobfiles = files.slice(i, i + TH).map(v => TARGET_PREFIX + dir + "/" + v);
-    try {
-      await Promise.all(jobfiles.map(job));
-    } catch (e) {
-      console.log(chalk.red("[sync] upload failed => [auto retry]"), jobfiles);
-      await Promise.all(jobfiles.map(job));
-    }
+    await Promise.all(jobfiles.map(job));
   }
 };
 
@@ -48,15 +62,16 @@ const syncPageFromFile = async (bot: WikiBot, rawTitle: string, localFile: strin
 
 const downloadPage = async (bot: WikiBot, rawTitle: string, localFile: string) => {
   const text = await bot.raw(rawTitle);
-  await fs.writeFile(localFile, text);
+  if (text) await fs.writeFile(localFile, text);
 };
+
+const modulesList = "Enemy/Stage/Character/Item/Util/Charword".split("/");
 
 const pullModules = async (bot: WikiBot) => {
   const pull = (module: string) => {
     return downloadPage(bot, `Module:${module}`, `src/module/${module}.lua`);
   };
-  const list = "Enemy/Skill/Stage/Character/Item/Util/Charword".split("/");
-  for (const mo of list) {
+  for (const mo of modulesList) {
     console.log("pull", mo);
     await pull(mo);
   }
@@ -65,8 +80,7 @@ const pushModules = async (bot: WikiBot) => {
   const push = (module: string) => {
     return syncPageFromFile(bot, `Module:${module}`, `src/module/${module}.lua`, "");
   };
-  const list = "Enemy/Skill/Stage/Character/Item/Util/Charword".split("/");
-  for (const mo of list) {
+  for (const mo of modulesList) {
     await push(mo);
   }
 };
@@ -103,15 +117,19 @@ const syncSinglePage = async (bot: WikiBot, title: string, file: string) => {
   await syncPage(bot, title, text);
 };
 
-export default async () => {
+export default async (argv?: { [key: string]: any }) => {
   const bot = new WikiBot("https://arknights.huijiwiki.com/", process.env.user, process.env.session);
   await bot.getToken();
-  const mode = process.argv[3] || "module";
-  const force = process.argv[4] === "-f";
+  const mode = argv.mode;
+  const force = argv.force;
   // 自动上传图片
   if (mode === "char") {
     console.log("[sync] uploadImage(char) start");
     await uploadImage("char", bot, force);
+  }
+  if (mode === "itemimg") {
+    console.log("[sync] uploadImage(item) start");
+    await uploadImage("items", bot, force, argv.skip);
   }
   if (mode === "map") {
     console.log("[sync] uploadImage(map) start");

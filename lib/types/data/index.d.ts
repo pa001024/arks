@@ -1,0 +1,23 @@
+import { SkillTable } from "./skill.i";
+import { ItemTable } from "./item.i";
+import { SkinTable } from "./skin.i";
+import { HandbookTeamTable } from "./team.i";
+import { StageTable } from "./stage.i";
+import { HandBookInfoTable } from "./handbook.i";
+import { CharacterTable } from "./char.i";
+import { EnemyTable, EnemyHandbookTable } from "./enemy.i";
+import { CharExtraTable } from "./extra.i";
+import { CharwordTable } from "./charword.i";
+export declare let character_table: CharacterTable;
+export declare let handbook_info_table: HandBookInfoTable;
+export declare let handbook_team_table: HandbookTeamTable;
+export declare let item_table: ItemTable;
+export declare let skill_table: SkillTable;
+export declare let skin_table: SkinTable;
+export declare let stage_table: StageTable;
+export declare let enemy_handbook_table: EnemyHandbookTable;
+export declare let charword_table: CharwordTable;
+export declare let enemy_table: EnemyTable;
+export declare let char_extra_table: CharExtraTable;
+export declare const loadData: () => Promise<void>;
+//# sourceMappingURL=index.d.ts.map

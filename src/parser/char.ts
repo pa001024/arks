@@ -1,7 +1,7 @@
 import * as _ from "lodash";
 import { Character, Profession } from "../data/char.i";
 import { HandBookInfo } from "../data/handbook.i";
-import { handbook_team_table, item_table, skill_table, skin_table, char_extra_table } from "../data";
+import { handbook_team_table, item_table, skill_table, skin_table, char_extra_table, charword_table } from "../data";
 import { isEmpty, firstCase } from "../util";
 import chalk from "chalk";
 
@@ -57,6 +57,8 @@ export interface CharacterFlat {
   name: string;
   /** 描述 */
   description?: string;
+  /** 登场语音 */
+  appearance?: string;
   /** 是否可以用通用信物升级 */
   canUseGeneralPotentialItem: boolean;
   /** 信物id */
@@ -130,20 +132,20 @@ export interface CharacterFlat {
   potentialRanks?: string[];
 
   // 暂时用不到的数据
-  // /** 最大部署数量 */
+  // /** 最大部署数量 恒为1 */
   // maxDeployCount: number[];
-  // /** ??? 恒为0 */
+  // /** 堆叠数量 恒为0 */
   // maxDeckStackCnt: number[];
-  // /** 嘲讽等级 1/0/-1 */
-  // tauntLevel: number[];
-  // /** 重力等级 恒为0 */
-  // massLevel: number[];
-  // /** 基础推力 恒为0 */
-  // baseForceLevel: number[];
-  // /** 免疫眩晕 0/1 */
-  // stunImmune: number[];
-  // /** 免疫沉默 0/1*/
-  // silenceImmune: number[];
+  /** 嘲讽等级 1/0/-1 */
+  tauntLevel?: number[];
+  /** 重力等级 恒为0 */
+  massLevel?: number[];
+  /** 基础推力 恒为0 */
+  baseForceLevel?: number[];
+  /** 免疫眩晕 0/1 */
+  stunImmune?: number[];
+  /** 免疫沉默 0/1*/
+  silenceImmune?: number[];
 
   // handbook补充数据
   /** CV */
@@ -227,7 +229,21 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
     dst.evolveCost = [];
 
     const prop4list = ["maxHp", "atk", "def"];
-    const prop3list = ["magicResistance", "cost", "blockCnt", "attackSpeed", "baseAttackTime", "respawnTime", "hpRecoveryPerSec", "spRecoveryPerSec"];
+    const prop3list = [
+      "magicResistance", //
+      "cost",
+      "blockCnt",
+      "attackSpeed",
+      "baseAttackTime",
+      "respawnTime",
+      "hpRecoveryPerSec",
+      "spRecoveryPerSec",
+      "tauntLevel",
+      "massLevel",
+      "baseForceLevel",
+      "stunImmune",
+      "silenceImmune",
+    ];
 
     char.phases.forEach((phase, index) => {
       // 初始数据
@@ -260,6 +276,21 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
       dst[prop] = uniqArray(dst[prop]);
     });
     if (isEmpty(dst.evolveCost)) delete dst.evolveCost;
+  }
+
+  // 删除默认值
+  {
+    const checkDefault = (obj: any, key: string, def: any) => {
+      const arr = obj[key];
+      if (arr.length === 1 && arr[0] === def) delete obj[key];
+    };
+    checkDefault(dst, "hpRecoveryPerSec", 0);
+    checkDefault(dst, "spRecoveryPerSec", 1);
+    checkDefault(dst, "tauntLevel", 0);
+    checkDefault(dst, "massLevel", 0);
+    checkDefault(dst, "baseForceLevel", 0);
+    checkDefault(dst, "stunImmune", false);
+    checkDefault(dst, "silenceImmune", false);
   }
 
   // 技能
@@ -358,7 +389,10 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
     });
   }
 
-  // extra补充数据
+  // charwork 补充数据
+  if (charword_table[char.id + "_CN_011"]) dst.appearance = charword_table[char.id + "_CN_011"].voiceText;
+
+  // extra补充数据 (基建)
   const extra = char_extra_table[dst.name];
   if (extra) {
     Object.assign(dst, extra);

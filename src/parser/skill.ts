@@ -22,6 +22,8 @@ interface SkillLevel {
   /** 最大充能次数 非0 */
   // maxChargeTime?: number;
   description: string;
+  // 变化的范围
+  rangeId?: string;
 }
 
 export const translateSkillIcon = (skill: Skill) => {
@@ -38,21 +40,23 @@ export const translateSkill = (skill: Skill) => {
   dst.levels = skill.levels.map(lv => {
     const level = {} as SkillLevel;
     if (lv.duration && lv.duration > 0) level.duration = lv.duration;
+    if (lv.rangeId !== base.rangeId) level.rangeId = lv.rangeId;
     if (lv.spData.spCost) level.spCost = lv.spData.spCost;
     if (lv.spData.initSp) level.initSp = lv.spData.initSp;
     if (lv.spData.increment != 0 && lv.spData.increment != 1) level.increment = lv.spData.increment;
     // if (lv.spData.maxChargeTime != 1 && lv.spData.maxChargeTime != 0) level.maxChargeTime = lv.spData.maxChargeTime;
     const props = lv.blackboard.reduce((r, v) => ((r[v.key] = v.value), r), {});
     level.description = lv.description
-      .replace(/\{-?(.+?)(:.+?)?\}/g, (m, key: string, format) => {
+      .replace(/\{-?(.+?)(:.+?)?\}/g, (m, key: string, format: string) => {
         key = key.toLowerCase();
+        const val = (m.startsWith("{-") ? -1 : 1) * props[key];
         if (format == ":0%") {
-          return (props[key] * 100).toFixed() + "%";
+          return (val * 100).toFixed() + "%";
         }
         if (format == ":0.0%") {
-          return (props[key] * 100).toFixed(1) + "%";
+          return (val * 100).toFixed(1) + "%";
         }
-        return props[key];
+        return String(val);
       })
       .replace(/攻击间隔(?:<@ba\.vdown>增大<\/>|<@ba\.vup>.*?缩短<\/>)/g, m => {
         const val = props["base_attack_time"];

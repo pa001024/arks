@@ -42,4 +42,9 @@ user=12*74
 session=o2mqh************89nc9fo
 ```
 
-then `yarn sync`
+then enter
+```bash
+yarn sync
+yarn sync map
+yarn sync book
+```

@@ -1,21 +1,19 @@
 import * as fs from "fs-extra";
 import { TMP_PREFIX, TARGET_PREFIX } from "./var";
-// import { convertImageName } from "./parser/image";
 import chalk from "chalk";
 import * as _ from "lodash";
 import async from "async";
-import { exec, spawn } from "child-process-promise";
+import { exec } from "child-process-promise";
 import * as path from "path";
-import { promisify } from "util";
 import { loadData, item_table, character_table, handbook_info_table, enemy_handbook_table, skill_table, charword_table } from "./data";
 import { CharacterFlat, translateCharacter, toSkinFile } from "./parser/char";
 import { translateItem } from "./parser/item";
-import { convertObjectToLua, formatJSON, json2Tab } from "./util";
+import { convertObjectToLua, formatJSON, json2Tab, imgSizeOf } from "./util";
 import { translateStage, translateStagePreview } from "./parser/stage";
 import { translateEnemy, EnemyFlat } from "./parser/enemy";
 import { translateSkill, SkillFlat, translateSkillIcon } from "./parser/skill";
 import { translateCharword } from "./parser/charword";
-const sizeOf: (file: string) => { width: number; height: number } = promisify(require("image-size"));
+import { convertItemImages } from "./parser/item.img";
 
 let charList: CharacterFlat[]; // 召唤物和干员
 let vCharList: CharacterFlat[]; // 干员
@@ -31,13 +29,13 @@ const convertCharImage = async () => {
   for (let i = 0; i < files.length; i++) {
     const name = files[i];
     if (name.includes("[alpha]")) {
-      const size = await sizeOf(basedir + name);
+      const size = await imgSizeOf(basedir + name);
       if (size.width >= 1024 && size.height >= 1024) {
         const head = name.substr(0, name.indexOf("[alpha]"));
         let outName = toSkinFile(head);
         if (!outName) console.log(chalk.red("unknown skin"), head);
         const re = new RegExp(`^${head.replace("+", "\\+")}(?: #\\d+)?\\.png$`);
-        const origin = await Promise.all(files.filter(v => re.test(v)).map(async name => ({ name, ...(await sizeOf(basedir + name)) })));
+        const origin = await Promise.all(files.filter(v => re.test(v)).map(async name => ({ name, ...(await imgSizeOf(basedir + name)) })));
         const main = origin.find(v => v.height >= 1024);
         if (!main) {
           console.log(chalk.red("cant find file", name));
@@ -124,7 +122,7 @@ const convertStage = async (cmd = "") => {
 const convertCharHandbook = async () => {
   const stories = _.map(handbook_info_table.handbookDict, char => {
     if (!character_table[char.charID]) {
-      console.log(chalk.red("[Convert Char Handbook] charid not found"), char.charID);
+      if (!char.charID.startsWith("npc")) console.log(chalk.red("[Convert Char Handbook] charid not found"), char.charID);
       return;
     }
     const name = character_table[char.charID].name;
@@ -205,16 +203,43 @@ const convertSkillIcon = async () => {
 const convertCVAudio = async () => {
   await fs.ensureDir(TARGET_PREFIX + "cv");
   const files = _.map(charword_table, cw => {
-    const char = character_table[cw.charId];
+    // const char = character_table[cw.charId];
+    const id = cw.charId.split("_")[2];
+    // if (id != "nightm") return null;
     return [
       TMP_PREFIX + "DB/AudioClip/assets/torappu/dynamicassets/audio/sound_beta_2/voice/" + cw.voiceAsset.toLowerCase() + ".wav", //
-      TARGET_PREFIX + "cv/" + `${cw.charId.split("_")[2]}_${cw.voiceId}.ogg`,
+      TARGET_PREFIX + "cv/" + `${id}_${cw.voiceId}.ogg`,
     ];
+  }).filter(Boolean);
+  // let bats = [];
+  await new Promise(resolve => {
+    async.forEachLimit(
+      files,
+      8,
+      async ([src, dst]) => {
+        const cmd = `ffmpeg -i "${src}" -c libvorbis -n -v quiet -ab 128k "${dst}"`;
+        if (await fs.pathExists(dst)) return;
+        // console.log(chalk.blue("processing"), cmd);
+        // bats.push(cmd);
+        try {
+          const rst = await exec(cmd);
+          if (rst.stderr) {
+            console.log(chalk.red("[error]"), rst.stderr);
+            throw rst.stderr;
+          } else {
+            console.log(chalk.blue("processed"), cmd);
+          }
+        } catch (e) {
+          if (e.stderr) console.log(chalk.red("[error]"), e.stderr);
+        }
+        return;
+      },
+      err => {
+        resolve();
+      }
+    );
   });
-  await async.forEachLimit(files, 10, async ([src, dst]) => {
-    console.log(chalk.blue("processing", "ffmpeg", ...["-i", src, "-c", "libvorbis", "-ab", "128k", dst]), dst);
-    await spawn("ffmpeg", ["-i", src, "-c", "libvorbis", dst]);
-  });
+  // await fs.writeFile(TARGET_PREFIX + "cmds.sh", bats.join("\n"));
 };
 
 export default async (cmd = "") => {
@@ -250,6 +275,10 @@ export default async (cmd = "") => {
   if (cmd === "cv") {
     console.log("[build] STEP7.7: convertCVAudio Start");
     await convertCVAudio();
+  }
+  if (cmd === "item") {
+    console.log("[build] STEP1: convertItemImages Start");
+    await convertItemImages();
   }
   console.log("[build] All Finished");
 };

@@ -100,3 +100,16 @@ export const json2Tab = (json: any[], title = "自动管理模板v1.0") => {
   };
   return tpl;
 };
+
+import async from "async";
+
+export const forEachLimit = <T>(itor: T[], limit = 5, func: (t: T) => Promise<void>) => {
+  return new Promise(resolve => {
+    async.forEachLimit(itor, limit, func, err => {
+      resolve();
+    });
+  });
+};
+
+import { promisify } from "util";
+export const imgSizeOf: (file: string) => Promise<{ width: number; height: number }> = promisify(require("image-size"));

@@ -9,7 +9,7 @@ local util = require('Module:Util')
 -- 获取角色数据 <Character>
 function p.getCharacter(charName)
   if charName == '干员页面' then
-  	charName = '阿米娅'
+    charName = '阿米娅'
   end
   return CharacterData.Characters[charName]
 end
@@ -117,8 +117,26 @@ function p.expendTelent(telent)
     elite = telent.phase,
     level = telent.level,
     description = telent.desc
-    -- TODO: upgrades
   }
+  if telent.upgrades then
+    params.upgrades =
+      util.join(
+      util.map(
+        telent.upgrades,
+        function(up)
+          local params2 = {
+            name = up.name,
+            elite = up.phase,
+            potential = up.potential,
+            level = up.level,
+            description = up.desc
+          }
+          return mw.getCurrentFrame():expandTemplate {title = '天赋升级', args = params2}
+        end
+      ),
+      ''
+    )
+  end
   return mw.getCurrentFrame():expandTemplate {title = '天赋', args = params}
 end
 
@@ -159,6 +177,15 @@ function p.renderSkillGroup(frame)
   local name = string.gsub(pagename, '/技能天赋$', '')
 
   return p.expendSkillGroup(name)
+end
+
+function p.show(frame)
+  local args = getArgs(frame)
+  local charname = args['name'] or args[1] or mw.title.getCurrentTitle().text
+  local keyname = args['key'] or args[2] or 'name'
+  local char = p.getCharacterFlat(charname)
+
+  return char[keyname]
 end
 
 function p.infobox(frame)

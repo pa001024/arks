@@ -2,20 +2,23 @@
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"],
   "compilerOptions": {
-    "baseUrl": ".",
-    // "paths": {
-    //   "@/*": ["src/*"]
-    // },
+    "baseUrl": "./",
+    "paths": {
+      "../*": ["src/*"]
+    },
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
-    "allowJs": true,
+    "allowJs": false,
     "module": "commonjs",
     "target": "esnext",
     "moduleResolution": "node",
     "isolatedModules": false,
     "lib": ["esnext", "scripthost"],
     "sourceMap": false,
-    "pretty": false
+    "pretty": false,
     // "types": []
+    "declaration": true, // 是否生成声明文件
+    "declarationDir": "./lib/types/", // 声明文件打包的位置
+    "declarationMap": true // 是否生成声明文件map文件（便于调试）
   }
 }
