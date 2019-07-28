@@ -7,6 +7,7 @@ export interface SkillFlat {
     spType: number;
     rangeId?: string;
     levels: SkillLevel[];
+    usedBy: string[];
 }
 interface SkillLevel {
     /** 持续时间 大于0 */

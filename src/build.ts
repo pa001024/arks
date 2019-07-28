@@ -17,6 +17,7 @@ import { convertItemImages } from "./parser/item.img";
 
 let charList: CharacterFlat[]; // 召唤物和干员
 let vCharList: CharacterFlat[]; // 干员
+let sCharSkillLink: { [key: string]: string[] } = {}; // 干员
 let skillMap: { [key: string]: SkillFlat };
 
 const convertCharImage = async () => {
@@ -55,9 +56,8 @@ const convertCharImage = async () => {
           // console.log(chalk.blue("file exists"), out);
           return;
         }
-        await exec(
-          ["magick convert", `"${path.resolve(basedir + origin)}"`, `"${path.resolve(basedir + alpha)}"`, "-alpha off -resize 1024x1024 -compose copyopacity -composite", `"${outdir}${out}"`].join(" ")
-        );
+        await exec(`magick convert "${basedir + origin}" "${basedir + alpha}" -alpha off -resize 1024x1024 -compose copyopacity -composite ${basedir}${out}`);
+
         console.log(chalk.green("converted"), out);
       })
     );
@@ -87,6 +87,13 @@ const convertEnemy = async () => {
 const convertCharacter = async () => {
   charList = _.map(character_table, (v, id) => translateCharacter(Object.assign({ id }, v), handbook_info_table.handbookDict[id]));
   vCharList = charList.filter(v => v.displayNumber);
+  charList.forEach(v => {
+    if (v.skills)
+      v.skills.forEach(s => {
+        if (!sCharSkillLink[s.name]) sCharSkillLink[s.name] = [];
+        sCharSkillLink[s.name].push(v.name);
+      });
+  });
 
   await fs.writeFile(TARGET_PREFIX + "CharacterFlat.json", formatJSON(charList));
   const luaOutput = convertObjectToLua(charList, "Characters");
@@ -160,8 +167,16 @@ const convertCharHandbook = async () => {
 
 const convertSkill = async () => {
   const skills = _.map(skill_table, translateSkill);
-  skillMap = skills.reduce((r, v) => ((r[v.name] = v), r), {});
+  skillMap = skills.reduce((r, v) => {
+    r[v.name] = v;
+    r[v.name].usedBy = sCharSkillLink[v.name];
+    return r;
+  }, {});
   const luaOutput = convertObjectToLua(_.map(skillMap), "Skills");
+  const sync = _.map(skillMap, v => {
+    return { title: v.name, text: "{{#invoke:Skill|renderSkill}}" };
+  });
+  await fs.writeFile(TARGET_PREFIX + "Skill.sync.json", formatJSON(sync));
   await fs.writeFile(TARGET_PREFIX + "SkillData.lua", luaOutput);
   await fs.writeFile(TARGET_PREFIX + "SkillFlat.json", formatJSON(skills));
 };

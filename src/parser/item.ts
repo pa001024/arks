@@ -27,11 +27,12 @@ export const translateItem = (item: Item) => {
     itemtype: item.itemType,
     dropBy: item.stageDropList
       .map(v => {
-        const key = `[[${stage_table.stages[v.stageId].code}]]`;
+        const stage_name = stage_table.stages[v.stageId].code === "剿灭作战" ? `${stage_table.stages[v.stageId].name}（剿灭作战）` : stage_table.stages[v.stageId].code;
+        const key = `[[${stage_name}]]`;
         enum DropRateTable {
           SOMETIMES = "罕见",
           OFTEN = "小概率",
-          USUAL = "概率",
+          USUAL = "概率掉落",
           ALMOST = "大概率",
           ALWAYS = "固定掉落",
         }

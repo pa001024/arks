@@ -4,7 +4,7 @@ local getArgs = require('Module:Arguments').getArgs
 
 function getCharword(name)
   local query = {
-    ['_id'] = { ["$regex"] = 'Data:Charword\\.tab' },
+    ['_id'] = {['$regex'] = 'Data:Charword\\.tab'},
     ['name'] = name
   }
   local result = mw.huiji.db.findOne(query)

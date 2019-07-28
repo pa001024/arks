@@ -1,7 +1,6 @@
 import * as fs from "fs-extra";
 import { exec } from "child-process-promise";
 import { TMP_PREFIX, TARGET_PREFIX } from "../var";
-import * as path from "path";
 import * as yaml from "yaml";
 import { imgSizeOf } from "../util";
 
@@ -148,7 +147,7 @@ export const convertItemImages = async () => {
       alpha = /_(\d+)\.png/.test(file) ? file.replace(/_(\d+)\.png/, "_alpha_$1.png") : file.replace(".png", "_alpha.png"),
       out = file.replace(".png", "_out.png");
     outs.push([out, file + ".meta"]);
-    await exec(`magick convert "${basedir + origin}" "${path.resolve(basedir + alpha)}" -alpha off -compose copyopacity -composite ${basedir}${out}`);
+    await exec(`magick convert "${basedir + origin}" "${basedir + alpha}" -alpha off -compose copyopacity -composite ${basedir}${out}`);
   }
   await fs.ensureDir(`${TARGET_PREFIX}items`);
   // 图片分割

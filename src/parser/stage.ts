@@ -104,11 +104,15 @@ export const translateStagePreview = (stage: StageFlat) => {
 
 // 关卡数据
 export const translateStage = () => {
-  return _.filter(stage_table.stages, v => !v.stageId.includes("#f#") && !!v.name && v.code !== "剿灭作战").map(main => {
+  return _.filter(stage_table.stages, v => !v.stageId.includes("#f#") && !!v.name).map(main => {
     let dst = {} as StageFlat;
+    // 突袭
     const hard = main.hardStagedId ? stage_table.stages[main.hardStagedId] : null;
 
-    if (main.code) {
+    if (main.code === "剿灭作战") {
+      dst.name = main.code = `${main.name}（剿灭作战）`;
+      dst.preview = main.stageId;
+    } else if (main.code) {
       dst.name = main.code.trim();
       dst.preview = "MAP-" + dst.name;
     }

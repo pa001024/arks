@@ -56,7 +56,8 @@ function p.expendSkill(skill, charSkill, skillCost)
       duration = lv.duration or 0, -- 持续时间
       spCost = lv.spCost or 0, -- SP需求
       initSp = lv.initSp or 0, -- 初始SP
-      description = lv.description or '' -- 描述
+      description = lv.description or '', -- 描述
+      rangeId = lv.rangeId or skill.rangeId -- 范围
     }
   end
 
@@ -99,11 +100,11 @@ function p.expendSkill(skill, charSkill, skillCost)
     elite = charSkill.phase,
     skillType = skill.skillType, -- 触发方式 0=被动 1=主动 2=自动
     spType = skill.spType, -- 回复方式 1=自动 2=攻击 4=受击 8=被动
-    rangeId = skill.rangeId,
     duration = pickParm('duration'),
     spCost = pickParm('spCost'),
     initSp = pickParm('initSp'),
     description = pickParm('description'),
+    rangeId = pickParm('rangeId'),
     rankUp = rankUp
   }
 
@@ -140,6 +141,20 @@ function p.expendTelent(telent)
   return mw.getCurrentFrame():expandTemplate {title = '天赋', args = params}
 end
 
+function p.expendBase(base)
+  -- 后勤
+  local params = {
+    name = base.name, -- 名称
+    cond = base.cond, -- 解锁条件
+    at = base.at, -- 设施
+    desc = base.desc, -- 描述
+    evolve = base.evolve, -- 升级后名称
+    evolveCond = base.evolveCond, -- 升级条件
+    evolveDesc = base.evolveDesc -- 升级后描述
+  }
+  return mw.getCurrentFrame():expandTemplate {title = '后勤', args = params}
+end
+
 function p.expendPotential(potential, name)
   -- 潜能
   local params = util.deepClone(potential)
@@ -162,6 +177,12 @@ function p.expendSkillGroup(name)
     uParms['天赋'] = ''
     for _, talent in pairs(char.talents) do
       uParms['天赋'] = uParms['天赋'] .. p.expendTelent(talent)
+    end
+  end
+  if char.baseSkill then
+    uParms['后勤'] = ''
+    for _, base in pairs(char.baseSkill) do
+      uParms['后勤'] = uParms['后勤'] .. p.expendBase(base)
     end
   end
   if char.potentialRanks then
@@ -208,9 +229,13 @@ end
 
 function p.char(frame)
   local args = getArgs(frame)
-  local name = args['name'] or args[1]
-  local tab = getItem(name)
+  local name = args['name'] or args[1] or mw.title.getCurrentTitle().text
+  local tab = p.getCharacter(name)
   return mw.getCurrentFrame():expandTemplate {title = 'Char/template', args = tab}
+end
+
+function p.json()
+  return mw.jsonEncode(CharacterData.Characters)
 end
 
 return p

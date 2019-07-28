@@ -65,7 +65,7 @@ const downloadPage = async (bot: WikiBot, rawTitle: string, localFile: string) =
   if (text) await fs.writeFile(localFile, text);
 };
 
-const modulesList = "Enemy/Stage/Character/Item/Util/Charword".split("/");
+const modulesList = "Enemy/Skill/Stage/Character/Item/Util/Charword".split("/");
 
 const pullModules = async (bot: WikiBot) => {
   const pull = (module: string) => {
@@ -161,6 +161,7 @@ export default async (argv?: { [key: string]: any }) => {
   if (mode === "book" || mode === "all") {
     console.log("[sync] sync char.*sync.json start");
     await syncMultiPages(bot, "Char.sync.json");
+    await syncMultiPages(bot, "Skill.sync.json");
     await syncMultiPages(bot, "CharSkill.sync.json");
     await syncMultiPages(bot, "CharHandbook.sync.json");
     await syncMultiPages(bot, "CharWord.sync.json");
@@ -180,6 +181,7 @@ export default async (argv?: { [key: string]: any }) => {
     await purgeWithTemplate(bot, "template:NavboxEnemy");
     await purgeWithTemplate(bot, "template:NavboxChar");
     await purgeWithTemplate(bot, "template:NavboxStage");
+    await purgeWithTemplate(bot, "template:技能条");
   }
   console.log("[sync] All Finished");
 };
