@@ -1,9 +1,11 @@
 import * as _ from "lodash";
-import { stage_table, item_table, character_table, enemy_handbook_table } from "../data";
-import { DisplayDetailReward, LevelData } from "../data/stage.i";
-import { purge } from "../common.util";
+import { stage_table, item_table, character_table, enemy_handbook_table, enemy_table } from "../data";
+import { DisplayDetailReward, LevelData, EnemyDbRef } from "../data/stage.i";
+import { purge } from "../util";
 import { TMP_PREFIX, TARGET_PREFIX } from "../var";
 import { pathExistsSync, readFileSync } from "fs-extra";
+import chalk from "chalk";
+import { EnemyDetail, parseEnemyData } from "./enemy";
 
 interface StageFlat {
   /** 关卡序号 0-1 */
@@ -56,7 +58,7 @@ interface StageFlat {
   specialDrop?: string[];
   extraDrop?: string[];
   /** 敌人 */
-  enemies: string[];
+  enemies: EnemyDetail[];
 }
 
 const translateDrop = (drop: DisplayDetailReward) => {
@@ -75,21 +77,40 @@ const translateCharDrop = (drop: DisplayDetailReward) => {
   return drop.id;
 };
 
+
+
+const mergeEnemyDbRef = (ref: EnemyDbRef) => {
+  const enemy: EnemyDetail = {};
+  if (ref.useDb) {
+    const enemyDB = enemy_table[ref.id];
+    if (!enemyDB) {
+      console.log(chalk.red(`unknown enemyDBRef ${ref.id}`));
+      return;
+    }
+    const base: any = Object.assign({}, parseEnemyData(enemyDB[0].enemyData), ref.level !== 0 && parseEnemyData(enemyDB[ref.level].enemyData));
+    enemy.name = base.name;
+  }
+  Object.assign(enemy, parseEnemyData(ref.overwrittenData));
+  return purge(enemy, v => !v);
+};
+
 const translateStageEnemy = (levelId: string, id: string) => {
   const file = TMP_PREFIX + `ArknightsGameData/levels/${levelId.toLowerCase()}.json`;
   if (pathExistsSync(file)) {
     const level = JSON.parse(readFileSync(file, "utf-8")) as LevelData;
     return level.enemyDbRefs
-      .map(v => v.id)
-      .map(id => {
-        const enemy = enemy_handbook_table[id];
-        if (enemy) {
-          return enemy.name;
+      .map(ref => {
+        const mergedEnemy = mergeEnemyDbRef(ref);
+        if (mergedEnemy) {
+          return mergedEnemy;
+        } else {
+          console.log(`[translateStageEnemy]`, chalk.red(`enemy ${id} in ${levelId} not exsits`));
         }
       })
       .filter(Boolean);
+  } else {
+    console.log(`[translateStageEnemy]`, chalk.red(`level ${levelId} not exsits`));
   }
-  return [];
 };
 
 export const translateStagePreview = (stage: StageFlat) => {
@@ -151,8 +172,12 @@ export const translateStage = () => {
       if (commonDrop && commonDrop.length) dst.commonDrop = commonDrop;
       if (specialDrop && specialDrop.length) dst.specialDrop = specialDrop;
       if (extraDrop && extraDrop.length) dst.extraDrop = extraDrop;
+    }
+    if (main.levelId) {
       const enemies = translateStageEnemy(main.levelId, main.stageId);
       if (enemies && enemies.length) dst.enemies = enemies;
+    } else {
+      if (main.code !== "5-11") console.log(chalk.red(`${main.code} main.levelId not define`));
     }
     return purge(dst);
   });

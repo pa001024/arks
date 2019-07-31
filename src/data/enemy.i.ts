@@ -36,13 +36,14 @@ export interface EnemyDataValue {
   enemyData: EnemyData;
 }
 
-interface EnemyData {
+export interface EnemyData {
   name: StringValue;
   description: StringValue;
   prefabKey: StringValue;
-  attributes: Attributes;
+  /** 进门扣血 */
   lifePointReduce: NumberValue;
   rangeRadius: NumberValue;
+  attributes: Attributes;
   talentBlackboard?: TalentBlackboard[];
   skills?: Skill[];
 }

@@ -12,7 +12,7 @@ function p.getStageFlat(name)
   local raw = p.getStage(name)
   local dst = {}
   dst['代号'] = raw.name
-  dst['地图'] = 'MAP-' .. raw.name
+  dst['地图'] = raw.preview
   dst['名称'] = raw.alterName
   dst['简介'] = raw.description
   dst['等级'] = raw.dangerLevel
@@ -28,7 +28,16 @@ function p.getStageFlat(name)
   dst['头目'] = raw.bossMark
   dst['固定阵容'] = raw.isPredefined
   -- 数组
-  dst['敌人'] = raw.enemies and util.join(raw.enemies)
+  dst['敌人'] =
+    raw.enemies and
+    util.join(
+      util.map(
+        raw.enemies,
+        function(enemy)
+          return enemy.name
+        end
+      )
+    )
   dst['首次掉落'] = raw.firstDrop and util.join(raw.firstDrop)
   dst['角色掉落'] = raw.firstCharDrop and util.join(raw.firstCharDrop)
   dst['突袭掉落'] = raw.firstHardDrop and util.join(raw.firstHardDrop)

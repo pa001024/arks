@@ -1,6 +1,7 @@
 import * as _ from "lodash";
 import { enemy_table } from "../data";
-import { EnemyHandbook } from "../data/enemy.i";
+import { EnemyHandbook, EnemyData, EnemyTable } from "../data/enemy.i";
+import { purge } from "../util";
 
 export interface EnemyFlat {
   id: string;
@@ -15,25 +16,52 @@ export interface EnemyFlat {
   enemyRace?: string;
   attackType: string;
   ability?: string;
-  maxHp0: number;
-  atk0: number;
-  def0: number;
-  magicResistance0: number;
-  moveSpeed0: number;
-  baseAttackTime0: number;
-  massLevel0: number;
-  rangeRadius0: number;
-  maxHp1?: number;
-  atk1?: number;
-  def1?: number;
-  magicResistance1?: number;
-  moveSpeed1?: number;
-  baseAttackTime1?: number;
-  massLevel1?: number;
-  rangeRadius1?: number;
+
+  levels: EnemyAttribute[];
+}
+export interface EnemyDetail extends EnemyAttribute {
+  // id?: string;
+  name?: string;
+  description?: string;
+  lifePointReduce?: number;
+  rangeRadius?: number;
+}
+export interface EnemyAttribute {
+  maxHp?: number;
+  atk?: number;
+  def?: number;
+  magicResistance?: number;
+  cost?: number;
+  blockCnt?: number;
+  moveSpeed?: number;
+  attackSpeed?: number;
+  baseAttackTime?: number;
+  respawnTime?: number;
+  hpRecoveryPerSec?: number;
+  spRecoveryPerSec?: number;
+  maxDeployCount?: number;
+  massLevel?: number;
+  baseForceLevel?: number;
   stunImmune?: boolean;
   silenceImmune?: boolean;
 }
+
+export const parseEnemyData = (level: EnemyData, detail = true) => {
+  return _.reduce(
+    level,
+    (r, v: any, n) => {
+      if (n === "attributes") {
+        _.forEach(v as EnemyTable[string][number]["enemyData"]["attributes"], (v, n) => {
+          if (v.m_defined) r[n] = v.m_value;
+        });
+      } else if ((detail ? ["name", "description", "lifePointReduce", "rangeRadius"] : ["lifePointReduce", "rangeRadius"]).includes(n)) {
+        if (v.m_defined) r[n] = v.m_value;
+      }
+      return r;
+    },
+    {}
+  );
+};
 
 export const translateEnemy = (enemyHandbook: EnemyHandbook) => {
   const enemy = enemy_table[enemyHandbook.enemyId];
@@ -52,18 +80,7 @@ export const translateEnemy = (enemyHandbook: EnemyHandbook) => {
       console.log(enemy);
       return;
     }
-    const [level0, level1] = enemy;
-    const attributes = ["maxHp", "atk", "def", "magicResistance", "moveSpeed", "baseAttackTime", "massLevel", "stunImmune", "silenceImmune"];
-    attributes.forEach(v => {
-      if (level0.enemyData.attributes[v].m_value) dst[v + "0"] = level0.enemyData.attributes[v].m_value;
-    });
-    if (level0.enemyData.rangeRadius.m_value) dst.rangeRadius0 = level0.enemyData.rangeRadius.m_value;
-    if (level1) {
-      attributes.forEach(v => {
-        if (level1.enemyData.attributes[v].m_value) dst[v + "1"] = level1.enemyData.attributes[v].m_value;
-      });
-      if (level1.enemyData.rangeRadius.m_value) dst.rangeRadius1 = level1.enemyData.rangeRadius.m_value;
-    }
+    dst.levels = enemy.map(v => purge(parseEnemyData(v.enemyData, false), v => !v));
   }
   return dst;
 };

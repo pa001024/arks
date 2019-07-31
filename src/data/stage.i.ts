@@ -209,14 +209,14 @@ interface Action {
   isUnharmfulAndAlwaysCountAsKilled: boolean;
 }
 
-interface EnemyDbRef {
+export interface EnemyDbRef {
   useDb: boolean;
   id: string;
   level: number;
-  overwrittenData?: OverwrittenDatum;
+  overwrittenData?: OverwrittenData;
 }
 
-interface OverwrittenDatum {
+interface OverwrittenData {
   name: Name;
   description: Name;
   prefabKey: Name;

@@ -9,9 +9,15 @@ function p.getEnemy(name)
 end
 
 function p.getEnemyFlat(name)
+  if name == '持盾刀兵' then
+    name = '机动盾兵'
+  end
   local raw = p.getEnemy(name)
   local dst = {}
-  dst['名称'] = raw.name
+  dst['名称'] = name
+  if not raw then
+    return dst
+  end
   dst['种族'] = raw.enemyRace or '其它'
   dst['级别'] = raw.level
   dst['编号'] = raw.index
@@ -19,27 +25,25 @@ function p.getEnemyFlat(name)
   dst['简介'] = raw.description
   dst['攻击类型'] = raw.attackType
   dst['能力'] = raw.ability or ''
-  dst['生命0'] = raw.maxHp0 or 0
-  dst['攻击0'] = raw.atk0 or 0
-  dst['防御0'] = raw.def0 or 0
-  dst['法术抗性0'] = raw.magicResistance0 or 0
-  dst['攻击速度0'] = raw.baseAttackTime0 or 0
-  dst['移动速度0'] = raw.moveSpeed0 or 0
-  dst['重量等级0'] = raw.massLevel0 or 0
-  dst['攻击距离0'] = raw.rangeRadius0 or 0
-  dst['生命1'] = raw.maxHp1 or raw.maxHp0 or 0
-  dst['攻击1'] = raw.atk1 or raw.atk0 or 0
-  dst['防御1'] = raw.def1 or raw.def0 or 0
-  dst['法术抗性1'] = raw.magicResistance1 or raw.magicResistance0 or 0
-  dst['攻击速度1'] = raw.baseAttackTime1 or raw.baseAttackTime0 or 0
-  dst['移动速度1'] = raw.moveSpeed1 or raw.moveSpeed0 or 0
-  dst['重量等级1'] = raw.massLevel1 or raw.massLevel0 or 0
-  dst['攻击距离1'] = raw.rangeRadius1 or raw.rangeRadius0 or 0
-  dst['level1'] =
-    raw.maxHp1 or raw.atk1 or raw.def1 or raw.magicResistance1 or raw.baseAttackTime1 or raw.moveSpeed1 or
-    raw.massLevel1 or
-    raw.rangeRadiu1 or
-    ''
+  dst['生命0'] = raw.levels[1].maxHp or 0
+  dst['攻击0'] = raw.levels[1].atk or 0
+  dst['防御0'] = raw.levels[1].def or 0
+  dst['法术抗性0'] = raw.levels[1].magicResistance or 0
+  dst['攻击速度0'] = raw.levels[1].baseAttackTime or 0
+  dst['移动速度0'] = raw.levels[1].moveSpeed or 0
+  dst['重量等级0'] = raw.levels[1].massLevel or 0
+  dst['攻击距离0'] = raw.levels[1].rangeRadius or 0
+  if raw.levels[2] then
+    dst['生命1'] = raw.levels[2].maxHp or raw.levels[1].maxHp or 0
+    dst['攻击1'] = raw.levels[2].atk or raw.levels[1].atk or 0
+    dst['防御1'] = raw.levels[2].def or raw.levels[1].def or 0
+    dst['法术抗性1'] = raw.levels[2].magicResistance or raw.levels[1].magicResistance or 0
+    dst['攻击速度1'] = raw.levels[2].baseAttackTime or raw.levels[1].baseAttackTime or 0
+    dst['移动速度1'] = raw.levels[2].moveSpeed or raw.levels[1].moveSpeed or 0
+    dst['重量等级1'] = raw.levels[2].massLevel or raw.levels[1].massLevel or 0
+    dst['攻击距离1'] = raw.levels[2].rangeRadius or raw.levels[1].rangeRadius or 0
+    dst['level1'] = 1
+  end
   -- 数组
   dst['属性'] = util.join(raw.handbook)
   return dst

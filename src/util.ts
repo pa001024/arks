@@ -23,7 +23,7 @@ export const toLuaObject = (obj: any, padding = 0) => {
           if (k.match(/^\w[\d\w]*$/)) return pad + `${k} = ${toLuaObject(v, padding + 1)},\n`;
           else return pad + `["${k}"] = ${toLuaObject(v)},\n`;
         } else {
-          if (k.match(/^\w[\d\w]*$/)) return `${k} = ${toLuaObject(v, padding + 1)}, `;
+          if (k.match(/^\w[\d\w]*$/)) return `${k} = ${toLuaObject(v, padding + 1)},`;
           else return `["${k}"] = ${toLuaObject(v)}, `;
         }
       }).filter(v => v !== null);
@@ -65,8 +65,8 @@ export const firstCase = (src: string) => {
   return src[0].toUpperCase() + src.substr(1);
 };
 
-export const purge = <T>(a: T) => {
-  Object.keys(a).forEach(v => a[v] !== 0 && !a[v] && delete a[v]);
+export const purge = <T>(a: T, filter = v => v !== 0 && !v) => {
+  Object.keys(a).forEach(v => filter(a[v]) && delete a[v]);
   return a;
 };
 
