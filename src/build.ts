@@ -103,14 +103,18 @@ const convertCharacter = async () => {
 
 const convertStage = async (cmd = "") => {
   const stages = translateStage();
-  const stage_preview = _.map(stages, translateStagePreview);
   if (cmd === "map") {
+    const stage_preview = _.map(stages, translateStagePreview);
     await fs.ensureDir(TARGET_PREFIX + "maps");
     for (let i = 0; i < stage_preview.length; i++) {
       const [src, dist] = stage_preview[i];
-      if ((await fs.pathExists(src)) && !(await fs.pathExists(dist))) {
-        console.log(chalk.green("[map] convert"), `${path.basename(src)} => ${path.basename(dist)}`);
-        await exec(`magick convert "${path.resolve(src)}" -resize 512x288! "${dist}"`);
+      if (await fs.pathExists(src)) {
+        if (!(await fs.pathExists(dist))) {
+          console.log(chalk.green("[map] convert"), `${path.basename(src)} => ${path.basename(dist)}`);
+          await exec(`magick convert "${path.resolve(src)}" -resize 512x288! "${dist}"`);
+        }
+      } else {
+        console.log(chalk.red("[map] error"), `${src} not found`);
       }
     }
   }

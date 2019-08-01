@@ -13,7 +13,9 @@ function p.getStageFlat(name)
   local dst = {}
   dst['代号'] = raw.name
   dst['地图'] = raw.preview
-  dst['名称'] = raw.alterName
+  if not string.match(raw.alterName, '剿灭作战') then
+    dst['名称'] = raw.alterName
+  end
   dst['简介'] = raw.description
   dst['等级'] = raw.dangerLevel
   dst['突袭'] = raw.hardDesc

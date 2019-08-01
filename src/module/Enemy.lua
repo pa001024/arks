@@ -25,25 +25,30 @@ function p.getEnemyFlat(name)
   dst['简介'] = raw.description
   dst['攻击类型'] = raw.attackType
   dst['能力'] = raw.ability or ''
-  dst['生命0'] = raw.levels[1].maxHp or 0
-  dst['攻击0'] = raw.levels[1].atk or 0
-  dst['防御0'] = raw.levels[1].def or 0
-  dst['法术抗性0'] = raw.levels[1].magicResistance or 0
-  dst['攻击速度0'] = raw.levels[1].baseAttackTime or 0
-  dst['移动速度0'] = raw.levels[1].moveSpeed or 0
-  dst['重量等级0'] = raw.levels[1].massLevel or 0
-  dst['攻击距离0'] = raw.levels[1].rangeRadius or 0
-  if raw.levels[2] then
-    dst['生命1'] = raw.levels[2].maxHp or raw.levels[1].maxHp or 0
-    dst['攻击1'] = raw.levels[2].atk or raw.levels[1].atk or 0
-    dst['防御1'] = raw.levels[2].def or raw.levels[1].def or 0
-    dst['法术抗性1'] = raw.levels[2].magicResistance or raw.levels[1].magicResistance or 0
-    dst['攻击速度1'] = raw.levels[2].baseAttackTime or raw.levels[1].baseAttackTime or 0
-    dst['移动速度1'] = raw.levels[2].moveSpeed or raw.levels[1].moveSpeed or 0
-    dst['重量等级1'] = raw.levels[2].massLevel or raw.levels[1].massLevel or 0
-    dst['攻击距离1'] = raw.levels[2].rangeRadius or raw.levels[1].rangeRadius or 0
-    dst['level1'] = 1
+  if raw.levels then
+    if raw.levels[1] then
+      dst['生命0'] = raw.levels[1].maxHp or 0
+      dst['攻击0'] = raw.levels[1].atk or 0
+      dst['防御0'] = raw.levels[1].def or 0
+      dst['法术抗性0'] = raw.levels[1].magicResistance or 0
+      dst['攻击速度0'] = raw.levels[1].baseAttackTime or 0
+      dst['移动速度0'] = raw.levels[1].moveSpeed or 0
+      dst['重量等级0'] = raw.levels[1].massLevel or 0
+      dst['攻击距离0'] = raw.levels[1].rangeRadius or 0
+    end
+    if raw.levels[2] then
+      dst['生命1'] = raw.levels[2].maxHp or raw.levels[1].maxHp or 0
+      dst['攻击1'] = raw.levels[2].atk or raw.levels[1].atk or 0
+      dst['防御1'] = raw.levels[2].def or raw.levels[1].def or 0
+      dst['法术抗性1'] = raw.levels[2].magicResistance or raw.levels[1].magicResistance or 0
+      dst['攻击速度1'] = raw.levels[2].baseAttackTime or raw.levels[1].baseAttackTime or 0
+      dst['移动速度1'] = raw.levels[2].moveSpeed or raw.levels[1].moveSpeed or 0
+      dst['重量等级1'] = raw.levels[2].massLevel or raw.levels[1].massLevel or 0
+      dst['攻击距离1'] = raw.levels[2].rangeRadius or raw.levels[1].rangeRadius or 0
+      dst['level1'] = 1
+    end
   end
+
   -- 数组
   dst['属性'] = util.join(raw.handbook)
   return dst
