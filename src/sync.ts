@@ -3,7 +3,7 @@ import * as fs from "fs-extra";
 import { TARGET_PREFIX } from "./var";
 import chalk from "chalk";
 import * as path from "path";
-import { formatJSON, forEachLimit } from "./util";
+import { formatJSON } from "./util";
 
 require("dotenv").config();
 
@@ -45,7 +45,8 @@ const uploadImage = async (dir: string, bot: WikiBot, force = false, skip = "") 
 };
 
 const syncPage = async (bot: WikiBot, title: string, text: string) => {
-  if ((await bot.raw(title)) !== text) {
+  // 去除末尾空行
+  if ((await bot.raw(title)) !== text.replace(/\n$/, "")) {
     console.log("[sync]", chalk.greenBright("diff detected:"), title);
     const rst = await bot.edit({ title, text });
     if (rst.error) {

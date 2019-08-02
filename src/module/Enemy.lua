@@ -25,6 +25,7 @@ function p.getEnemyFlat(name)
   dst['简介'] = raw.description
   dst['攻击类型'] = raw.attackType
   dst['能力'] = raw.ability or ''
+  dst['出现关卡'] = raw.refers and util.join(raw.refers) or ''
   if raw.levels then
     if raw.levels[1] then
       dst['生命0'] = raw.levels[1].maxHp or 0
@@ -61,7 +62,8 @@ end
 
 function p.renderListEnemy(type)
   local rst = ''
-  for _, enemy in pairs(EnemyData.Enemies) do
+  for _, enemyIndex in ipairs(EnemyData.EnemiesIndex) do
+    local enemy = p.getEnemy(enemyIndex)
     if not type or type == enemy.level then
       rst = rst .. p.renderEnemy(enemy.name)
     end

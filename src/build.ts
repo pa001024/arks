@@ -8,7 +8,7 @@ import * as path from "path";
 import { loadData, item_table, character_table, handbook_info_table, enemy_handbook_table, skill_table, charword_table } from "./data";
 import { CharacterFlat, translateCharacter, toSkinFile } from "./parser/char";
 import { translateItem } from "./parser/item";
-import { convertObjectToLua, formatJSON, json2Tab, imgSizeOf } from "./util";
+import { convertObjectToLua, formatJSON, json2Tab, imgSizeOf, convertObjectToLuaV2 } from "./util";
 import { translateStage, translateStagePreview } from "./parser/stage";
 import { translateEnemy, EnemyFlat } from "./parser/enemy";
 import { translateSkill, SkillFlat, translateSkillIcon } from "./parser/skill";
@@ -17,8 +17,9 @@ import { convertItemImages } from "./parser/item.img";
 
 let charList: CharacterFlat[]; // 召唤物和干员
 let vCharList: CharacterFlat[]; // 干员
-let sCharSkillLink: { [key: string]: string[] } = {}; // 干员
+let sCharSkillLink: { [key: string]: string[] } = {}; // 技能-干员引用表
 let skillMap: { [key: string]: SkillFlat };
+let sEnemyStageLink: { [key: string]: string[] } = {}; // 敌人-关卡引用表
 
 const convertCharImage = async () => {
   const basedir = TMP_PREFIX + "DB/Texture2D/";
@@ -70,20 +71,6 @@ const convertItem = async () => {
   await fs.writeFile(TARGET_PREFIX + "ItemData.lua", luaOutput);
 };
 
-const convertEnemy = async () => {
-  const enemyList = _.map(enemy_handbook_table, translateEnemy) as EnemyFlat[];
-  const luaOutput = convertObjectToLua(enemyList, "Enemies");
-  await fs.writeFile(TARGET_PREFIX + "EnemyData.lua", luaOutput);
-  await fs.writeFile(
-    TARGET_PREFIX + "Enemy.sync.json",
-    formatJSON(
-      enemyList.map(v => {
-        return { title: v.name, text: "{{InfoboxEnemy}}{{NavboxEnemy}}" };
-      })
-    )
-  );
-};
-
 const convertCharacter = async () => {
   charList = _.map(character_table, (v, id) => translateCharacter(Object.assign({ id }, v), handbook_info_table.handbookDict[id]));
   vCharList = charList.filter(v => v.displayNumber);
@@ -118,6 +105,14 @@ const convertStage = async (cmd = "") => {
       }
     }
   }
+  stages.forEach(v => {
+    if (v.enemies) {
+      v.enemies.forEach(s => {
+        if (!sEnemyStageLink[s.name]) sEnemyStageLink[s.name] = [];
+        sEnemyStageLink[s.name].push(v.name);
+      });
+    }
+  });
   const luaOutput = convertObjectToLua(stages, "Stages");
   await fs.outputFile(TARGET_PREFIX + "StageData.lua", luaOutput);
   await fs.outputFile(
@@ -125,6 +120,23 @@ const convertStage = async (cmd = "") => {
     formatJSON(
       stages.map(v => {
         return { title: v.name, text: `{{InfoboxStage}}{{NavboxStage}}` };
+      })
+    )
+  );
+};
+
+const convertEnemy = async () => {
+  const enemyList = _.map(enemy_handbook_table, translateEnemy).map(v => {
+    if (sEnemyStageLink[v.name]) v.refers = sEnemyStageLink[v.name];
+    return v;
+  }) as EnemyFlat[];
+  const luaOutput = convertObjectToLuaV2(enemyList, "Enemies");
+  await fs.writeFile(TARGET_PREFIX + "EnemyData.lua", luaOutput);
+  await fs.writeFile(
+    TARGET_PREFIX + "Enemy.sync.json",
+    formatJSON(
+      enemyList.map(v => {
+        return { title: v.name, text: "{{InfoboxEnemy}}{{NavboxEnemy}}" };
       })
     )
   );

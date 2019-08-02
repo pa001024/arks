@@ -18,13 +18,7 @@ export interface EnemyFlat {
   ability?: string;
 
   levels: EnemyAttribute[];
-}
-export interface EnemyDetail extends EnemyAttribute {
-  // id?: string;
-  name?: string;
-  description?: string;
-  lifePointReduce?: number;
-  rangeRadius?: number;
+  refers: string[];
 }
 export interface EnemyAttribute {
   maxHp?: number;
@@ -44,6 +38,13 @@ export interface EnemyAttribute {
   baseForceLevel?: number;
   stunImmune?: boolean;
   silenceImmune?: boolean;
+  lifePointReduce?: number;
+  rangeRadius?: number;
+}
+export interface EnemyDetail extends EnemyAttribute {
+  // id?: string;
+  name?: string;
+  description?: string;
 }
 
 export const parseEnemyData = (level: EnemyData, detail = true) => {
@@ -80,7 +81,14 @@ export const translateEnemy = (enemyHandbook: EnemyHandbook) => {
       console.log(enemy);
       return;
     }
-    dst.levels = enemy.map(v => purge(parseEnemyData(v.enemyData, false), v => !v));
+    dst.levels = enemy.map(v =>
+      purge(parseEnemyData(v.enemyData, false), (v, n) => {
+        if (n === "attackSpeed" && v === 100) return true;
+        if (n === "massLevel" && v === 1) return true;
+        if (n === "lifePointReduce" && v === 1) return true;
+        return !v;
+      })
+    );
   }
   return dst;
 };

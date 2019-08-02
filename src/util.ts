@@ -6,10 +6,21 @@ export const toLuaObject = (obj: any, padding = 0) => {
     padn1 = padding > 0 ? "    ".repeat(padding - 1) : "";
   if (typeof obj === "object" && obj !== null) {
     if (Array.isArray(obj)) {
-      const isComplex = obj.some(v => typeof v === "object") ? obj.length > 3 : obj.length > 10;
-      if (isComplex) {
-        const raw = obj.map(v => toLuaObject(v, padding + 1)).join(`, \n${pad}`);
-        return "{\n" + pad + raw + "\n" + padn1 + "}";
+      const isComplex = obj.some(v => typeof v === "object");
+      const isLarge = isComplex ? obj.length > 3 : obj.length > 10;
+      if (isLarge) {
+        if (isComplex) {
+          const raw = obj.map(v => toLuaObject(v, padding + 1)).join(`,\n${pad}`);
+          return "{\n" + pad + raw + "\n" + padn1 + "}";
+        } else {
+          // 简单对象长数组使用每10个换一行
+          const raw = _.chunk(obj, 10)
+            .map(sub => {
+              return sub.map(v => toLuaObject(v, padding + 1)).join(`, `);
+            })
+            .join(`,\n${pad}`);
+          return "{\n" + pad + raw + "\n" + padn1 + "}";
+        }
       } else {
         const raw = obj.map(v => toLuaObject(v, padding)).join(", ");
         return "{" + raw + "}";
@@ -24,7 +35,7 @@ export const toLuaObject = (obj: any, padding = 0) => {
           else return pad + `["${k}"] = ${toLuaObject(v)},\n`;
         } else {
           if (k.match(/^\w[\d\w]*$/)) return `${k} = ${toLuaObject(v, padding + 1)},`;
-          else return `["${k}"] = ${toLuaObject(v)}, `;
+          else return `["${k}"] = ${toLuaObject(v)},`;
         }
       }).filter(v => v !== null);
       if (isComplex) return `{\n${content.join("")}${padn1}}`;
@@ -39,13 +50,37 @@ export const convertObjectToLua = (
   name: string,
   dataname = (name.endsWith("ies") ? name.substr(0, name.length - 3) + "y" : name.endsWith("s") ? name.substr(0, name.length - 1) : name) + "Data"
 ) => {
-  const charList = arr.map(c => `["${c.name}"] = ${toLuaObject(c, 3)}`);
+  const list = arr.map(c => `["${c.name}"] = ${toLuaObject(c, 3)}`);
   const tmpl = `-- AUTOMATIC GENERATED, DO NOT EDIT
 -- see https://github.com/pa001024/arks
 
 local ${dataname} = {
     ["${name}"] = {
-        ${charList.join(",\n        ")}
+        ${list.join(",\n        ")}
+    },
+}
+return ${dataname}`;
+  return tmpl;
+};
+
+// MAP+索引形式
+export const convertObjectToLuaV2 = (
+  arr: { name: string }[],
+  name: string,
+  dataname = (name.endsWith("ies") ? name.substr(0, name.length - 3) + "y" : name.endsWith("s") ? name.substr(0, name.length - 1) : name) + "Data"
+) => {
+  const index = arr.map(c => `${toLuaObject(c.name, 3)}`);
+  const list = arr.map(c => `["${c.name}"] = ${toLuaObject(c, 3)}`);
+  const tmpl = `-- AUTOMATIC GENERATED, DO NOT EDIT
+-- format: IndexedArray
+-- see https://github.com/pa001024/arks
+
+local ${dataname} = {
+    ["${name}Index"] = {
+        ${index.join(",\n        ")}
+    },
+    ["${name}"] = {
+        ${list.join(",\n        ")}
     },
 }
 return ${dataname}`;
@@ -65,8 +100,8 @@ export const firstCase = (src: string) => {
   return src[0].toUpperCase() + src.substr(1);
 };
 
-export const purge = <T>(a: T, filter = v => v !== 0 && !v) => {
-  Object.keys(a).forEach(v => filter(a[v]) && delete a[v]);
+export const purge = <T>(a: T, filter = (v: unknown, i: string) => v !== 0 && !v) => {
+  Object.keys(a).forEach(v => filter(a[v], v) && delete a[v]);
   return a;
 };
 
