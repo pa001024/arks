@@ -1,27 +1,26 @@
 import * as prettier from "prettier";
 import * as _ from "lodash";
 
-export const toLuaObject = (obj: any, padding = 0) => {
-  const pad = "    ".repeat(padding),
-    padn1 = padding > 0 ? "    ".repeat(padding - 1) : "";
+export const toLuaObject = (obj: any, padding = 0, tab = "    ", trailingComma = true) => {
+  const pad = tab.repeat(padding),
+    padn1 = padding > 0 ? tab.repeat(padding - 1) : "";
   if (typeof obj === "object" && obj !== null) {
     if (Array.isArray(obj)) {
       const isComplex = obj.some(v => typeof v === "object");
       const isLarge = isComplex ? obj.length > 3 : obj.length > 10;
       if (isLarge) {
-        if (isComplex) {
-          const raw = obj.map(v => toLuaObject(v, padding + 1)).join(`,\n${pad}`);
-          return "{\n" + pad + raw + "\n" + padn1 + "}";
-        } else {
-          // 简单对象长数组使用每10个换一行
-          const raw = _.chunk(obj, 10)
-            .map(sub => {
-              return sub.map(v => toLuaObject(v, padding + 1)).join(`, `);
-            })
-            .join(`,\n${pad}`);
-          return "{\n" + pad + raw + "\n" + padn1 + "}";
-        }
+        // multi-line array
+        const raw = isComplex
+          ? obj.map(v => toLuaObject(v, padding + 1)).join(`,\n${pad}`)
+          : // 简单对象长数组使用每10个换一行
+            _.chunk(obj, 10)
+              .map(sub => {
+                return sub.map(v => toLuaObject(v, padding + 1)).join(`, `);
+              })
+              .join(`,\n${pad}`);
+        return `{\n${pad}${raw}${trailingComma ? "," : ""}\n${padn1}}`;
       } else {
+        // single-line array
         const raw = obj.map(v => toLuaObject(v, padding)).join(", ");
         return "{" + raw + "}";
       }
@@ -30,16 +29,16 @@ export const toLuaObject = (obj: any, padding = 0) => {
       const isComplex = arr.length > 2 || arr.some(v => typeof v === "object");
       const content = _.map(obj, (v, k) => {
         if (v === null) return null;
-        if (isComplex) {
-          if (k.match(/^\w[\d\w]*$/)) return pad + `${k} = ${toLuaObject(v, padding + 1)},\n`;
-          else return pad + `["${k}"] = ${toLuaObject(v)},\n`;
-        } else {
-          if (k.match(/^\w[\d\w]*$/)) return `${k} = ${toLuaObject(v, padding + 1)},`;
-          else return `["${k}"] = ${toLuaObject(v)},`;
-        }
+        if (k.match(/^\w[\d\w]*$/)) return `${k} = ${toLuaObject(v, padding + 1)}`;
+        else return `["${k}"] = ${toLuaObject(v)}`;
       }).filter(v => v !== null);
-      if (isComplex) return `{\n${content.join("")}${padn1}}`;
-      else return `{ ${content.join("")}}`;
+      if (isComplex) {
+        // multi-line object
+        return `{\n${pad}${content.join(",\n" + pad)}${trailingComma ? "," : ""}\n${padn1}}`;
+      } else {
+        // single-line object
+        return `{ ${content.join(", ")} }`;
+      }
     }
   }
   return JSON.stringify(obj);
