@@ -5,51 +5,6 @@ import { handbook_team_table, item_table, skill_table, skin_table, char_extra_ta
 import { isEmpty, firstCase } from "../util";
 import chalk from "chalk";
 
-interface CharSkillFlat {
-  /** 技能中文名 */
-  name: string;
-  phase: number;
-  level?: number;
-  masterCost?: EvolveCost[][];
-}
-interface TalentsFlat {
-  name: string;
-  phase: number;
-  level?: number;
-  desc: string;
-  upgrades?: SkillUpgradeFlat[];
-}
-
-interface SkillUpgradeFlat {
-  name?: string;
-  phase: number;
-  level?: number;
-  desc: string;
-  potential: number;
-}
-
-interface EvolveCost {
-  name: string;
-  count: number;
-}
-
-interface SkinFlat {
-  // id: string;
-  name: string;
-  desc?: string;
-  // 仅与主设不同时才会存在
-  drawer?: string;
-}
-
-interface TeamFlat {
-  //"reservea1"
-  key: string;
-  //"行动预备组A1"
-  name: string;
-  //"58ccff"
-  color: string;
-}
-
 export interface CharacterFlat {
   /** id */
   id: string;
@@ -60,11 +15,11 @@ export interface CharacterFlat {
   /** 登场语音 */
   appearance?: string;
   /** 是否可以用通用信物升级 */
-  canUseGeneralPotentialItem: boolean;
+  canUseGeneralPotentialItem?: boolean;
   /** 信物id */
-  potentialItemId: string;
+  potentialItemId?: string;
   /** 队伍id */
-  team: TeamFlat;
+  team?: TeamFlat;
   /** 显示序号 */
   displayNumber?: string;
   /** 召唤物id */
@@ -92,7 +47,7 @@ export interface CharacterFlat {
 
   // 归并数据
   /** 攻击范围 初始/精一/精二 */
-  rangeId: string[];
+  rangeId?: string[];
   /** 最大等级 初始/精一/精二 */
   maxLevel: number[];
   /** 最大生命值 1/50/精一满/精二满 */
@@ -116,14 +71,14 @@ export interface CharacterFlat {
   /** 重新部署时间 */
   respawnTime: number[];
   /** 回血速度 */
-  hpRecoveryPerSec: number[];
+  hpRecoveryPerSec?: number[];
   /** 回技速度 */
-  spRecoveryPerSec: number[];
+  spRecoveryPerSec?: number[];
 
   /** 技能 */
-  skills: CharSkillFlat[];
+  skills?: CharSkillFlat[];
   /** 天赋 */
-  talents: TalentsFlat[];
+  talents?: TalentsFlat[];
 
   /** 精英化材料 */
   evolveCost?: EvolveCost[][];
@@ -149,15 +104,74 @@ export interface CharacterFlat {
 
   // handbook补充数据
   /** CV */
-  cv: string;
+  cv?: string;
   /** 画师 */
-  art: string;
+  art?: string;
 
   // skin补充数据
-  skins: SkinFlat[];
+  skins?: SkinFlat[];
 
   // skill补充数据
-  skillCost: EvolveCost[][];
+  skillCost?: EvolveCost[][];
+
+  // 基建
+  baseSkill?: BaseSkillFlat[];
+}
+
+interface CharSkillFlat {
+  /** 技能中文名 */
+  name: string;
+  phase: number;
+  level?: number;
+  masterCost?: EvolveCost[][];
+}
+interface TalentsFlat {
+  name: string;
+  phase: number;
+  level?: number;
+  desc: string;
+  upgrades?: SkillUpgradeFlat[];
+}
+
+interface SkillUpgradeFlat {
+  name?: string;
+  phase: number;
+  level?: number;
+  desc: string;
+  potential?: number;
+}
+
+interface EvolveCost {
+  name: string;
+  count: number;
+}
+
+interface SkinFlat {
+  // id: string;
+  name: string;
+  file: string;
+  desc?: string;
+  // 仅与主设不同时才会存在
+  drawer?: string;
+}
+
+interface TeamFlat {
+  //"reservea1"
+  key: string;
+  //"行动预备组A1"
+  name: string;
+  //"58ccff"
+  color: string;
+}
+
+interface BaseSkillFlat {
+  name: string;
+  cond: string;
+  at: string;
+  desc: string;
+  evolve?: string;
+  evolveCond?: string;
+  evolveDesc?: string;
 }
 
 const uniqArray = <T>(arr: T[]) => {
@@ -172,8 +186,7 @@ export const toSkinFile = (head: string) => {
   const charName = head.match(/(char|token|trap)_(\d+)_([A-Za-z0-9]+)/);
   if (charName) {
     const skinTail = head.replace(`${charName[0]}_`, "").replace("#", "-");
-    const skinHead = skinTail.split("-")[0];
-    const skinHash = skinTail.split("-")[1];
+    const [skinHead, skinHash] = skinTail.split("-");
     const skinid = skinTail.length === head.length ? head : charName[0] + (skinHash ? "@" + skinHead + "#" + skinHash : "#" + skinTail);
     const skin = skin_table.charSkins[skinid];
     if (skin) {
@@ -220,7 +233,7 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
   // 职业
   dst.profession = Profession[char.profession]; // 转换成中文
   // 潜能
-  if (char.potentialRanks) dst.potentialRanks = char.potentialRanks.map(v => v.description);
+  if (char.potentialRanks && char.potentialRanks.length) dst.potentialRanks = char.potentialRanks.map(v => v.description);
 
   // 归并数据
   if (char.phases && char.phases[0] && char.phases[0].maxLevel) {
@@ -256,7 +269,7 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
         });
       }
       dst.maxLevel.push(phase.maxLevel);
-      dst.rangeId.push(phase.rangeId);
+      if (phase.rangeId) dst.rangeId.push(phase.rangeId);
       // 满级数据
       prop4list.concat(prop3list).forEach(prop => {
         dst[prop].push(phase.attributesKeyFrames[1].data[prop]);
@@ -270,7 +283,8 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
         );
       }
     });
-    dst.rangeId = uniqArray(dst.rangeId);
+    if (dst.rangeId.length) dst.rangeId = uniqArray(dst.rangeId);
+    else delete dst.rangeId;
     // 将所有数值都一样的换成一个值
     prop3list.concat(prop4list).forEach(prop => {
       dst[prop] = uniqArray(dst[prop]);
@@ -326,7 +340,7 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
     if (!dst.skills.length) delete dst.skills;
   }
   // 技能升级
-  if (char.allSkillLvlup && char.allSkillLvlup.length) {
+  if (char.allSkillLvlup && char.allSkillLvlup.length && char.allSkillLvlup.some(v => v.lvlUpCost)) {
     dst.skillCost = char.allSkillLvlup.map(rankup => {
       if (!rankup.lvlUpCost) {
         return [];
