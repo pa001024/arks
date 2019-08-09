@@ -24,6 +24,7 @@ export let charword_table: CharwordTable;
 // export let enemy_database: EnemyDatabase;
 export let enemy_table: EnemyTable;
 export let char_extra_table: CharExtraTable;
+export let char_pool_table: { [key: string]: number };
 
 export const loadData = async () => {
   // load data
@@ -39,4 +40,5 @@ export const loadData = async () => {
   const enemy_database = JSON.parse(await fs.readFile(TMP_PREFIX + "ArknightsGameData/levels/enemydata/enemy_database.json", "utf-8")) as EnemyDatabase;
   enemy_table = enemy_database.enemies.reduce((r, v) => ((r[v.Key] = v.Value), r), {} as EnemyTable);
   char_extra_table = JSON.parse(await fs.readFile("src/patch/char.json", "utf-8"));
+  char_pool_table = JSON.parse(await fs.readFile("src/patch/charmethod.json", "utf-8"));
 };

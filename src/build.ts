@@ -83,6 +83,28 @@ const convertCharacter = async () => {
   });
 
   await fs.writeFile(TARGET_PREFIX + "CharacterFlat.json", formatJSON(charList));
+  await fs.writeFile(
+    TARGET_PREFIX + "HR.json",
+    formatJSON(
+      charList
+        .filter(v => v.displayNumber)
+        .map(v => {
+          return {
+            name: v.name,
+            pic: v.id.split("_")[2],
+            alt: v.appellation,
+            logo: v.displayLogo,
+            job: v.profession,
+            num: v.displayNumber,
+            r: v.rarity + 1,
+            pool: v.pool,
+            sex: v.sex,
+            tags: [v.position, ...v.tagList],
+            desc: v.description,
+          };
+        })
+    )
+  );
   const luaOutput = convertObjectToLua(charList, "Characters");
   await fs.writeFile(TARGET_PREFIX + "CharacterData.lua", luaOutput);
   await fs.writeFile(TMP_PREFIX + "character_array.json", formatJSON(charList));

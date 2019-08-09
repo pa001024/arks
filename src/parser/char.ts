@@ -1,7 +1,7 @@
 import * as _ from "lodash";
 import { Character, Profession } from "../data/char.i";
 import { HandBookInfo } from "../data/handbook.i";
-import { handbook_team_table, item_table, skill_table, skin_table, char_extra_table, charword_table } from "../data";
+import { handbook_team_table, item_table, skill_table, skin_table, char_extra_table, charword_table, char_pool_table } from "../data";
 import { isEmpty, firstCase } from "../util";
 import chalk from "chalk";
 
@@ -107,6 +107,8 @@ export interface CharacterFlat {
   cv?: string;
   /** 画师 */
   art?: string;
+  /** 性别 0=女 1=男 */
+  sex?: number;
 
   // skin补充数据
   skins?: SkinFlat[];
@@ -116,6 +118,9 @@ export interface CharacterFlat {
 
   // 基建
   baseSkill?: BaseSkillFlat[];
+
+  // 池子 1=寻访 2=公招 3=均可
+  pool?: number;
 }
 
 interface CharSkillFlat {
@@ -386,6 +391,8 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
   if (handbook) {
     dst.cv = handbook.infoName;
     dst.art = handbook.drawName;
+    const text = handbook.storyTextAudio[0].stories[0].storyText;
+    dst.sex = text.indexOf("【性别】男") !== -1 ? 1 : 0;
   }
 
   // skin补充数据
@@ -412,5 +419,11 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
   if (extra) {
     Object.assign(dst, extra);
   }
+  // 池子补充数据
+  const pool = char_pool_table[dst.name];
+  if (typeof pool !== "undefined") {
+    dst.pool = pool;
+  }
+
   return dst;
 };
