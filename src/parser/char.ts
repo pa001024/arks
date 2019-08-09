@@ -39,7 +39,7 @@ export interface CharacterFlat {
   /** 获取途径: 主线剧情 招募寻访 预约奖励 活动获得 信用交易所 */
   itemObtainApproach?: string;
   /** 最大潜能 */
-  maxPotentialLevel: number;
+  maxPotentialLevel?: number;
   /** 稀有度 0-5 */
   rarity: number;
   /** 职业: PIONEER WARRIOR TANK SPECIAL SNIPER CASTER MEDIC SUPPORTER */
@@ -220,8 +220,8 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
   dst.itemUsage = char.itemUsage;
   dst.itemDesc = char.itemDesc;
   dst.itemObtainApproach = char.itemObtainApproach;
-  dst.maxPotentialLevel = char.maxPotentialLevel;
-  dst.tokenKey = char.tokenKey;
+  if (char.maxPotentialLevel != 5) dst.maxPotentialLevel = char.maxPotentialLevel;
+  if (char.tokenKey) dst.tokenKey = char.tokenKey;
 
   if (char.team > -1) {
     dst.team = {
@@ -365,17 +365,18 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
         phase: talent.candidates[0].unlockCondition.phase,
         level: talent.candidates[0].unlockCondition.level,
         desc: talent.candidates[0].description,
-        upgrades: talent.candidates.slice(1).map(v => {
+      } as TalentsFlat;
+      if (talent.candidates.length > 1)
+        s.upgrades = talent.candidates.slice(1).map(v => {
           const rst = {} as SkillUpgradeFlat;
           if (talent.candidates[0].name != v.name) rst.name = v.name;
           rst.phase = v.unlockCondition.phase;
-          if (!v.unlockCondition.level && v.unlockCondition.level != 1) rst.level = v.unlockCondition.level;
+          if (v.unlockCondition.level && v.unlockCondition.level != 1) rst.level = v.unlockCondition.level;
           if (v.requiredPotentialRank) rst.potential = v.requiredPotentialRank;
           rst.desc = v.description;
 
           return rst;
-        }),
-      } as TalentsFlat;
+        });
       if (talent.candidates[0].unlockCondition.level != 1) s.level = talent.candidates[0].unlockCondition.level;
       dst.talents.push(s);
     });
