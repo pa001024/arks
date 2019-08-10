@@ -91,7 +91,7 @@ const convertCharacter = async () => {
         .map(v => {
           return {
             name: v.name,
-            pic: v.id.split("_")[2],
+            pic: [...v.skins.map(v => v.file)],
             alt: v.appellation,
             logo: v.displayLogo,
             job: v.profession,
