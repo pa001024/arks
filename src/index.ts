@@ -7,7 +7,7 @@ import { usage } from "yargs";
 usage("$0 <cmd> [args]")
   .scriptName("arks-parser")
   .command(
-    "build [mode]",
+    "build [mode] [name] [dir]",
     "build from source",
     {
       mode: {
@@ -15,9 +15,19 @@ usage("$0 <cmd> [args]")
         default: "",
         describe: "the mode name",
       },
+      name: {
+        type: "string",
+        default: "",
+        describe: "the name",
+      },
+      dir: {
+        type: "string",
+        default: "",
+        describe: "the dir",
+      },
     },
     async function(argv) {
-      await build(argv.mode);
+      await build(argv.mode, argv.name, argv.dir);
     }
   )
   .command(

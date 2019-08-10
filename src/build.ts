@@ -295,7 +295,7 @@ const convertCVAudio = async () => {
   // await fs.writeFile(TARGET_PREFIX + "cmds.sh", bats.join("\n"));
 };
 
-export default async (cmd = "") => {
+export default async (cmd = "", ...options: string[]) => {
   fs.ensureDir(TARGET_PREFIX);
   await loadData();
 
@@ -321,17 +321,9 @@ export default async (cmd = "") => {
     console.log("[build] STEP1.5: convertCharImage Start");
     await convertCharImage();
   }
-  if (cmd === "po" || cmd === "all") {
-    console.log("[build] unpackuTinyRipper: chr_portraits_hub.ab Start");
-    await unpackuTinyRipper("chr_portraits_hub.ab", "portrait");
-  }
-  if (cmd === "num" || cmd === "all") {
-    console.log("[build] unpackuTinyRipper: number_hub.ab Start");
-    await unpackuTinyRipper("number_hub.ab", "numbers");
-  }
-  if (cmd === "item" || cmd === "all") {
-    console.log("[build] unpackuTinyRipper: item_icons_hub.ab Start");
-    await unpackuTinyRipper("item_icons_hub.ab", "items");
+  if (cmd === "unpack" || cmd === "all") {
+    console.log(`[build] unpackuTinyRipper: ${options[0]} to ${options[1]} Start`);
+    await unpackuTinyRipper(options[0], options[1]);
   }
   if (cmd === "map" || cmd === "all") {
     console.log("[build] STEP3.5: convertStage(image) Start");
