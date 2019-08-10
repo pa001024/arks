@@ -4,10 +4,12 @@ import { TARGET_PREFIX } from "./var";
 import chalk from "chalk";
 import * as path from "path";
 import { formatJSON } from "./util";
+import { toSkinFile } from "./parser/char";
+import { loadData } from "./data";
 
 require("dotenv").config();
 
-const uploadImage = async (dir: string, bot: WikiBot, force = false, skip = "") => {
+const uploadImage = async (dir: string, bot: WikiBot, force = false, skip = "", renamer?: (src: string) => string) => {
   const files = await fs.readdir(TARGET_PREFIX + dir + "/");
   const TH = 3;
   let skipv = skip,
@@ -28,13 +30,16 @@ const uploadImage = async (dir: string, bot: WikiBot, force = false, skip = "") 
       let done = false;
       do {
         try {
-          if (force || !(await bot.getImageInfo(name))) {
-            const rst = await bot.uploadFile(file);
-            console.log("[sync]", name, rst.upload ? chalk.green("uploaded") + " " + rst.upload.result : chalk.red("error"));
+          const distName = renamer ? renamer(name) : name;
+          if (distName) {
+            if (force || !(await bot.getImageInfo(distName))) {
+              const rst = await bot.uploadFile(file, distName);
+              console.log("[sync]", distName, rst.upload ? chalk.green("uploaded") + " " + rst.upload.result : chalk.red("error"));
+            }
           }
           done = true;
         } catch (e) {
-          console.log(chalk.red("[sync] upload failed => [auto retry]"), name);
+          console.log(chalk.red("[sync] upload failed => [auto retry]"), `${name}${renamer(name)}`, e.message);
         }
       } while (!done);
     };
@@ -136,6 +141,14 @@ export default async (argv?: { [key: string]: any }) => {
   if (mode === "char" || mode === "all") {
     console.log("[sync] uploadImage(char) start");
     await uploadImage("char", bot, force);
+  }
+  if (mode === "po" || mode === "all") {
+    await loadData();
+    console.log("[sync] uploadImage(portrait) start");
+    await uploadImage("portrait", bot, force, "", name => {
+      const head = name.split(".")[0];
+      return toSkinFile(head) + "_p.png";
+    });
   }
   if (mode === "itemimg" || mode === "all") {
     console.log("[sync] uploadImage(item) start");

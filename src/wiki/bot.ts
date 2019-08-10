@@ -156,10 +156,10 @@ export class WikiBot {
     return res.data;
   }
 
-  async uploadFile(filename: string, buffer?: fs.ReadStream) {
+  async uploadFile(filename: string, buffer?: string | fs.ReadStream) {
     let url = this.API;
-    const file = buffer || fs.createReadStream(filename);
-    const name = path.basename(filename);
+    const file = typeof buffer !== "string" ? buffer : fs.createReadStream(filename);
+    const name = typeof buffer === "string" ? buffer : path.basename(filename);
     let form = new FormData();
     form.append("format", "json");
     form.append("action", "upload");

@@ -13,7 +13,7 @@ import { translateStage, translateStagePreview } from "./parser/stage";
 import { translateEnemy, EnemyFlat } from "./parser/enemy";
 import { translateSkill, SkillFlat, translateSkillIcon } from "./parser/skill";
 import { translateCharword } from "./parser/charword";
-import { convertItemImages } from "./parser/item.img";
+import { unpackuTinyRipper } from "./parser/unpack";
 
 let charList: CharacterFlat[]; // 召唤物和干员
 let vCharList: CharacterFlat[]; // 干员
@@ -321,9 +321,17 @@ export default async (cmd = "") => {
     console.log("[build] STEP1.5: convertCharImage Start");
     await convertCharImage();
   }
+  if (cmd === "po" || cmd === "all") {
+    console.log("[build] unpackuTinyRipper: chr_portraits_hub.ab Start");
+    await unpackuTinyRipper("chr_portraits_hub.ab", "portrait");
+  }
+  if (cmd === "num" || cmd === "all") {
+    console.log("[build] unpackuTinyRipper: number_hub.ab Start");
+    await unpackuTinyRipper("number_hub.ab", "numbers");
+  }
   if (cmd === "item" || cmd === "all") {
-    console.log("[build] STEP2.5: convertItemImages Start");
-    await convertItemImages();
+    console.log("[build] unpackuTinyRipper: item_icons_hub.ab Start");
+    await unpackuTinyRipper("item_icons_hub.ab", "items");
   }
   if (cmd === "map" || cmd === "all") {
     console.log("[build] STEP3.5: convertStage(image) Start");

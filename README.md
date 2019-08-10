@@ -6,12 +6,13 @@ arknights data parser and build tools
 
 ### requirement
 
-- [imagemagick](https://imagemagick.org/script/download.php)
+- [imagemagick 7.x](https://imagemagick.org/script/download.php)
 - nodejs v8.x or newer
 - yarn
 - git
 - ffmpeg
-- AssetStudio
+- [AssetStudio](https://ci.appveyor.com/project/Perfare/assetstudio/branch/master/artifacts) ([src](https://github.com/Perfare/AssetStudio))
+- [uTinyRipper](https://sourceforge.net/projects/utinyripper/files/) ([src](https://github.com/mafaca/UtinyRipper))
 
 ### install
 
