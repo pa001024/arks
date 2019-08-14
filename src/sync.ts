@@ -1,6 +1,6 @@
 import { WikiBot } from "./wiki/bot";
 import * as fs from "fs-extra";
-import { TARGET_PREFIX } from "./var";
+import { TARGET_PREFIX, TMP_PREFIX } from "./var";
 import chalk from "chalk";
 import * as path from "path";
 import { formatJSON } from "./util";
@@ -141,6 +141,11 @@ export default async (argv?: { [key: string]: any }) => {
   if (mode === "char" || mode === "all") {
     console.log("[sync] uploadImage(char) start");
     await uploadImage("char", bot, force);
+  }
+  if (mode === "hr" /*  || mode === "all" */) {
+    console.log("[sync] uploadHR start");
+    await syncPageFromFile(bot, "Gadget:Hr.css", "HR/hr.css", TMP_PREFIX);
+    await syncPageFromFile(bot, "Gadget:Hr.js", "HR/hr.js", TMP_PREFIX);
   }
   if (mode === "po" || mode === "all") {
     await loadData();

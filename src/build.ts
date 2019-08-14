@@ -321,7 +321,7 @@ export default async (cmd = "", ...options: string[]) => {
     console.log("[build] STEP1.5: convertCharImage Start");
     await convertCharImage();
   }
-  if (cmd === "unpack" || cmd === "all") {
+  if (cmd === "unpack" /* || cmd === "all" */) {
     console.log(`[build] unpackuTinyRipper: ${options[0]} to ${options[1]} Start`);
     await unpackuTinyRipper(options[0], options[1]);
   }

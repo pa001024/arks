@@ -3,7 +3,7 @@ import { exec } from "child-process-promise";
 import { TMP_PREFIX, TARGET_PREFIX } from "../var";
 import * as yaml from "yaml";
 import { imgSizeOf } from "../util";
-import { Meta } from "./meta";
+import { Meta } from "./unpack.meta";
 
 export const unpackuTinyRipper = async (abfile: string,dir:string) => {
   // 通道合并
