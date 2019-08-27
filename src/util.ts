@@ -49,7 +49,7 @@ export const convertObjectToLua = (
   name: string,
   dataname = (name.endsWith("ies") ? name.substr(0, name.length - 3) + "y" : name.endsWith("s") ? name.substr(0, name.length - 1) : name) + "Data"
 ) => {
-  const list = arr.map(c => `["${c.name}"] = ${toLuaObject(c, 3)}`);
+  const list = arr.map(c => `[${JSON.stringify(c.name)}] = ${toLuaObject(c, 3)}`);
   const tmpl = `-- AUTOMATIC GENERATED, DO NOT EDIT
 -- see https://github.com/pa001024/arks
 
@@ -69,7 +69,7 @@ export const convertObjectToLuaV2 = (
   dataname = (name.endsWith("ies") ? name.substr(0, name.length - 3) + "y" : name.endsWith("s") ? name.substr(0, name.length - 1) : name) + "Data"
 ) => {
   const index = arr.map(c => `${toLuaObject(c.name, 3)}`);
-  const list = arr.map(c => `["${c.name}"] = ${toLuaObject(c, 3)}`);
+  const list = arr.map(c => `[${JSON.stringify(c.name)}] = ${toLuaObject(c, 3)}`);
   const tmpl = `-- AUTOMATIC GENERATED, DO NOT EDIT
 -- format: IndexedArray
 -- see https://github.com/pa001024/arks

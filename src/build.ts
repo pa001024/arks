@@ -57,7 +57,7 @@ const convertCharImage = async () => {
           // console.log(chalk.blue("file exists"), out);
           return;
         }
-        await exec(`magick convert "${basedir + origin}" "${basedir + alpha}" -alpha off -resize 1024x1024 -compose copyopacity -composite ${basedir}${out}`);
+        await exec(`magick convert "${basedir + origin}" "${basedir + alpha}" -alpha off -resize 1024x1024 -compose copyopacity -composite ${outdir + out}`);
 
         console.log(chalk.green("converted"), out);
       })

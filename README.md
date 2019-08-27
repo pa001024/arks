@@ -86,3 +86,12 @@ yarn sync all
 yarn sync purge
 
 ```
+
+
+## others
+
+头像文件
+https://ak-data.mooncell.wiki/assets/arts/avatar_hub.ab
+
+肖像文件
+https://ak-data.mooncell.wiki/assets/arts/characters/chr_portraits_hub.ab

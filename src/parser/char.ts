@@ -188,9 +188,9 @@ const uniqArray = <T>(arr: T[]) => {
 let collectedPic = new Set<string>();
 
 export const toSkinFile = (head: string) => {
-  const charName = head.match(/(char|token|trap)_(\d+)_([A-Za-z0-9]+)/);
+  const charName = head.match(/(char|npc)_(\d+)_([A-Za-z0-9]+)/);
   if (charName) {
-    const skinTail = head.replace(`${charName[0]}_`, "").replace("#", "-");
+    const skinTail = charName[0] === head ? "1" : head.replace(`${charName[0]}_`, "").replace("#", "-");
     const [skinHead, skinHash] = skinTail.split("-");
     const skinid = skinTail.length === head.length ? head : charName[0] + (skinHash ? "@" + skinHead + "#" + skinHash : "#" + skinTail);
     const skin = skin_table.charSkins[skinid];
@@ -392,7 +392,7 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
     dst.cv = handbook.infoName;
     dst.art = handbook.drawName;
     const text = handbook.storyTextAudio[0].stories[0].storyText;
-    dst.sex = text.indexOf("【性别】男") !== -1 ? 1 : 0;
+    dst.sex = text.indexOf("性别】男") !== -1 ? 1 : 0;
   }
 
   // skin补充数据

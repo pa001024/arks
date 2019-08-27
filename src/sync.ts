@@ -39,7 +39,7 @@ const uploadImage = async (dir: string, bot: WikiBot, force = false, skip = "", 
           }
           done = true;
         } catch (e) {
-          console.log(chalk.red("[sync] upload failed => [auto retry]"), `${name}${renamer(name)}`, e.message);
+          console.log(chalk.red("[sync] upload failed => [auto retry]"), `${name}`, e.message);
         }
       } while (!done);
     };
@@ -153,6 +153,14 @@ export default async (argv?: { [key: string]: any }) => {
     await uploadImage("portrait", bot, force, "", name => {
       const head = name.split(".")[0];
       return toSkinFile(head) + "_p.png";
+    });
+  }
+  if (mode === "avatar" || mode === "all") {
+    await loadData();
+    console.log("[sync] uploadImage(avatar) start");
+    await uploadImage("avatar", bot, force, "", name => {
+      const head = name.split(".")[0];
+      return toSkinFile(head) + "_a.png";
     });
   }
   if (mode === "itemimg" || mode === "all") {

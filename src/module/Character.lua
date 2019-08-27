@@ -1,7 +1,8 @@
 local p = {}
 
 local getArgs = require('Module:Arguments').getArgs
-local CharacterData = mw.loadData('Module:Character/data')
+-- local CharacterData = mw.loadData('Module:Character/data')
+local CharacterData = mw.huiji.db.findOne({ _id = "Data:CharacterData.json"})
 local SkillData = mw.loadData('Module:Skill/data')
 local util = require('Module:Util')
 -- local Tags = {"输出", "生存", "削弱", "群攻", "控场", "治疗", "支援", "防护", "快速复活", "位移", "爆发", "减速", "费用回复"}
@@ -235,7 +236,7 @@ function p.char(frame)
 end
 
 function p.json()
-  return mw.jsonEncode(CharacterData.Characters)
+  return mw.text.jsonEncode(CharacterData.Characters)
 end
 
 return p
