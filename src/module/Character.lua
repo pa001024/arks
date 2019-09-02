@@ -1,8 +1,7 @@
 local p = {}
 
 local getArgs = require('Module:Arguments').getArgs
--- local CharacterData = mw.loadData('Module:Character/data')
-local CharacterData = mw.huiji.db.findOne({ _id = "Data:CharacterData.json"})
+local CharacterData = mw.loadData('Module:Character/data')
 local SkillData = mw.loadData('Module:Skill/data')
 local util = require('Module:Util')
 -- local Tags = {"输出", "生存", "削弱", "群攻", "控场", "治疗", "支援", "防护", "快速复活", "位移", "爆发", "减速", "费用回复"}
@@ -237,6 +236,42 @@ end
 
 function p.json()
   return mw.text.jsonEncode(CharacterData.Characters)
+end
+
+-- 输出制定职业的列表
+function p.nav(frame)
+  local args = getArgs(frame)
+  local pro = args[1]
+  return p.renderNav(pro)
+end
+
+function p.renderNav(pro)
+  local color = {'90A4AE', 'CDDC39', '03A9F4', 'BA68C8', 'FFEB3B', 'FF9800'}
+  local spliter = ' <i class="fa fa-connectdevelop" display:inline-block;width:1em;text-align:center;"></i> '
+  -- 筛选
+  local chars =
+    util.toArray(
+    util.filter(
+      CharacterData.Characters,
+      function(char)
+        return char.profession == pro
+      end
+    )
+  )
+  -- 排序
+  util.sortBy(chars, util.byKey('rarity', 'desc'), util.byKey('name'))
+  -- 组合
+  local elems =
+    util.map(
+    chars,
+    function(char)
+      return '[[' ..
+        char.name ..
+          '|<span style="text-shadow: 1px 1px 1px black; color:#' ..
+            color[char.rarity + 1] .. "\">'''" .. char.name .. "'''</span>]]"
+    end
+  )
+  return util.join(elems, spliter)
 end
 
 return p

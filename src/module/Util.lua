@@ -175,6 +175,7 @@ function p.timeID()
   return os.clock() * 1e9
 end
 
+-- 义同 list.map(func)
 function p.map(list, func)
   local newList = {}
   for key, value in pairs(list) do
@@ -183,6 +184,89 @@ function p.map(list, func)
   return newList
 end
 
+-- 义同 list.filter(func)
+function p.filter(list, func)
+  local newList = {}
+  for key, value in pairs(list) do
+    if func(value) then
+      newList[key] = value
+    end
+  end
+  return newList
+end
+
+-- 字典转数组
+function p.toArray(list)
+  local newList = {}
+  for _, value in pairs(list) do
+    newList[#newList + 1] = value
+  end
+  return newList
+end
+
+-- 义同 list.sort(func)
+function p.sort(list, func)
+  table.sort(list, func)
+  return list
+end
+
+-- 义同 list.find(func) 返回符合条件的第一个值
+function p.find(list, func)
+  if not func then
+    return p.find(list, p.Boolean)
+  end
+  for _, value in pairs(list) do
+    if func(value) then
+      return value
+    end
+  end
+  return nil
+end
+
+-- 多条件排序使用的工具函数 返回一个sorter
+function p.byKey(key, desc)
+  return function(a, b)
+    if a[key] == b[key] then
+      return 0
+    end
+    local na = a[key]
+    local nb = b[key]
+    if desc then
+      return na > nb
+    else
+      return nb > na
+    end
+  end
+end
+
+-- 义同 list.sort((a,b)=>func(a)>func(b)) 函数需要以通过调用table.sort来实现字符串排序等功能
+-- 支持string或者number类型 string使用a.localeCompare(b) number使用a-b
+-- 使用desc使用倒序
+--[[
+  例:
+  local arr = {{name="C",val=5},{name="B",val=6},{name="A",val=5}}
+  -- 意为 按name升序 如相同则按val降序
+  util.sortBy(arr, util.byKey("val", "desc"), util.byKey("name"))
+  返回:
+  {{name="B",val=6},{name="A",val=5},{name="C",val=5}}
+]]
+function p.sortBy(list, ...)
+  local sorters = {...}
+  return p.sort(
+    list,
+    function(a, b)
+      for _, sorter in ipairs(sorters) do
+        local result = sorter(a, b)
+        if result ~= 0 then
+          return result
+        end
+      end
+      return false
+    end
+  )
+end
+
+-- 义同 list.reduce(func, init)
 function p.reduce(list, func, init)
   local re = init
   for key, value in pairs(list) do
@@ -194,6 +278,7 @@ function p.reduce(list, func, init)
   end
 end
 
+-- 义同 list.some(func)
 function p.some(list, func)
   local yes = false
   for key, value in pairs(list) do
@@ -205,6 +290,7 @@ function p.some(list, func)
   return yes
 end
 
+-- 义同 list.every(func)
 function p.every(list, func)
   local yes = true
   for key, value in pairs(list) do
@@ -213,6 +299,7 @@ function p.every(list, func)
   return yes
 end
 
+-- 常用于 util.filter(list, util.Boolean) 意为去除非真值
 function p.Boolean(val)
   if val == 0 then
     return false
@@ -229,7 +316,7 @@ function p.pick(tab, key)
   return list
 end
 
--- 义同a.concat(b)
+-- 义同 a.concat(b)
 function p.concat(a, b)
   local t = p.deepClone(a)
   if not b then
