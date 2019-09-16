@@ -9,7 +9,7 @@
   "private": false,
   "scripts": {
     "dist": "webpack --progress --colors",
-    "fetch": "ts-node src/index.ts fetch",
+    "fetch": "ts-node src/creeper/char.ts",
     "clean": "ts-node src/index.ts clean",
     "build": "ts-node src/index.ts build",
     "sync": "ts-node src/index.ts sync",
