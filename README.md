@@ -12,7 +12,7 @@ arknights data parser and build tools
 - git
 - ffmpeg
 - [AssetStudio](https://ci.appveyor.com/project/Perfare/assetstudio/branch/master/artifacts) ([src](https://github.com/Perfare/AssetStudio))
-- [uTinyRipper](https://sourceforge.net/projects/utinyripper/files/) ([src](https://github.com/mafaca/UtinyRipper))
+- <s>[uTinyRipper](https://sourceforge.net/projects/utinyripper/files/) ([src](https://github.com/mafaca/UtinyRipper))</s> (included)
 
 ### install
 
