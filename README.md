@@ -7,30 +7,26 @@ arknights data parser and build tools
 ### requirement
 
 - [imagemagick 7.x](https://imagemagick.org/script/download.php)
-- nodejs v8.x or newer
-- yarn
-- git
-- ffmpeg
-- [AssetStudio](https://ci.appveyor.com/project/Perfare/assetstudio/branch/master/artifacts) ([src](https://github.com/Perfare/AssetStudio))
+- [nodejs](https://nodejs.org/en/) v10.x or newer
+- yarn (`npm i -g yarn`)
+- [git](https://git-scm.com/downloads)
+- [ffmpeg](http://ffmpeg.org/download.html)
+- <s>[AssetStudio](https://ci.appveyor.com/project/Perfare/assetstudio/branch/master/artifacts) ([src](https://github.com/Perfare/AssetStudio))</s>
 - <s>[uTinyRipper](https://sourceforge.net/projects/utinyripper/files/) ([src](https://github.com/mafaca/UtinyRipper))</s> (included)
 
 ### install
 
 ```bash
-mkdir tmp
-cd tmp
-git clone https://github.com/Perfare/ArknightsGameData.git
-cd ..
-# make your symlink to AssetStudio output folder
-# windows: mklink /j e:\dev\arks\tmp\DB e:\dev\arknights\DB
-ln -s path/to/asset/folder DB
 yarn
+yarn update
 yarn build
+yarn fetch
+yarn build-assets
 ```
 
 ### upload (sync)
 
-edit your .env file (you can find this info in your cookie of wiki)
+edit your .env file (you can find this info in your wiki's cookie)
 
 ```bash
 cp .env.example .env

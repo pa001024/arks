@@ -9,6 +9,7 @@
   "private": false,
   "scripts": {
     "dist": "webpack --progress --colors",
+    "update": "ts-node src/update.ts",
     "fetch": "ts-node src/creeper/char.ts",
     "clean": "ts-node src/index.ts clean",
     "build": "ts-node src/index.ts build",
@@ -17,8 +18,7 @@
     "push": "ts-node src/index.ts sync push",
     "purge": "ts-node src/index.ts sync purge",
     "build:all": "ts-node src/index.ts clean && ts-node src/index.ts fetch && ts-node src/index.ts",
-    "dev": "ts-node-dev --respawn src/index.ts build",
-    "up": "cd tmp/ArknightsGameData && git pull"
+    "dev": "ts-node-dev --respawn src/index.ts build"
   },
   "dependencies": {
     "async": "^2.6.3",
