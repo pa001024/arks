@@ -183,10 +183,7 @@ export default async (argv?: { [key: string]: any }) => {
     // const raw = await bot.raw("Module:Character/data");
     console.log("[sync] uploadModuleData start");
     await uploadModuleData(bot);
-  }
-  // 同步
-  if (mode === "book" || mode === "all") {
-    console.log("[sync] sync char.*sync.json start");
+    await syncSinglePage(bot, "Data:Charword.tab", "CharWord.tab.json");
     await syncMultiPages(bot, "Char.sync.json");
     await syncMultiPages(bot, "Skill.sync.json");
     await syncMultiPages(bot, "CharSkill.sync.json");
@@ -200,9 +197,6 @@ export default async (argv?: { [key: string]: any }) => {
   if (mode === "stage" || mode === "all") {
     console.log("[sync] sync stage.*sync.json start");
     await syncMultiPages(bot, "Stage.sync.json");
-  }
-  if (mode === "tab" || mode === "all") {
-    await syncSinglePage(bot, "Data:Charword.tab", "CharWord.tab.json");
   }
   if (mode === "purge" || mode === "all") {
     await purgeWithTemplate(bot, "template:NavboxEnemy");

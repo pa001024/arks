@@ -5,9 +5,9 @@ import * as yaml from "yaml";
 import { imgSizeOf } from "../util";
 import { Meta } from "./unpack.meta";
 
-export const unpackuTinyRipper = async (abfile: string,dir:string) => {
+export const unpackuTinyRipper = async (abfile: string, dir: string) => {
   // 通道合并
-  const basedir = TMP_PREFIX + abfile + "/Assets/Texture2D/";
+  const basedir = TMP_PREFIX + "ab/" + abfile + "_out/Assets/Texture2D/";
   const files = await fs.readdir(basedir);
   const outs = [];
   for (const file of files.filter(v => v.endsWith(".png") && !v.includes("_alpha") && !v.includes("_out"))) {

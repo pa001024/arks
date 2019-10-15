@@ -219,7 +219,7 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
   if (char.potentialItemId) dst.potentialItemId = char.potentialItemId;
   dst.displayNumber = char.displayNumber;
   dst.appellation = char.appellation;
-  dst.position = char.position;
+  dst.position = char.position === "RANGED" ? "远程位" : "近战位";
   dst.tagList = char.tagList;
   dst.displayLogo = char.displayLogo;
   dst.itemUsage = char.itemUsage;

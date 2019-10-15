@@ -48,7 +48,7 @@ const convertCharImage = async () => {
     }
   }
   // 并行进程数
-  const STEP = 2;
+  const STEP = 1;
   for (let i = 0; i < mainFiles.length; i += STEP) {
     const group = mainFiles.slice(i, i + STEP);
     await Promise.all(

@@ -66,20 +66,25 @@ yarn sync push
 # upload
 yarn sync
 yarn sync char
-yarn sync itemimg
 yarn sync map
 yarn sync cv
 yarn sync skillimg
-yarn sync book
 yarn sync enemy
 yarn sync stage
-yarn sync tab
 
 # default+char+itemimg+map+cv+skillimg+book+enemy+stage+tab
 yarn sync all
 
 # other
 yarn sync purge
+
+# other(export)
+yarn build unpack avatar_hub.ab avatar
+yarn sync avatar
+yarn build unpack chr_portraits_hub.ab portrait
+yarn sync po
+yarn build unpack item_icons_hub.ab items
+yarn sync itemimg
 
 ```
 
