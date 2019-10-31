@@ -188,6 +188,7 @@ const uniqArray = <T>(arr: T[]) => {
 let collectedPic = new Set<string>();
 
 export const toSkinFile = (head: string) => {
+  if (!head) return;
   const charName = head.match(/(char|npc)_(\d+)_([A-Za-z0-9]+)/);
   if (charName) {
     const skinTail = charName[0] === head ? "1" : head.replace(`${charName[0]}_`, "").replace("#", "-");
