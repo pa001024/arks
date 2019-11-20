@@ -49,9 +49,9 @@ const uploadImage = async (dir: string, bot: WikiBot, force = false, skip = "", 
   }
 };
 
-const syncPage = async (bot: WikiBot, title: string, text: string) => {
+const syncPage = async (bot: WikiBot, title: string, text: string, lazy = false) => {
   // 去除末尾空行
-  if ((await bot.raw(title)) !== text.replace(/\n$/, "")) {
+  if (lazy ? !(await bot.raw(title)) : (await bot.raw(title)) !== text.replace(/\n$/, "")) {
     console.log("[sync]", chalk.greenBright("diff detected:"), title);
     const rst = await bot.edit({ title, text });
     if (rst.error) {
@@ -110,7 +110,7 @@ interface Page {
   title: string;
   text: string;
 }
-const syncMultiPages = async (bot: WikiBot, file: string, base = TARGET_PREFIX) => {
+const syncMultiPages = async (bot: WikiBot, file: string, lazy = false, base = TARGET_PREFIX) => {
   const pages = JSON.parse(await fs.readFile(base + file, "utf-8")) as Page[];
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
@@ -178,25 +178,29 @@ export default async (argv?: { [key: string]: any }) => {
     console.log("[sync] uploadImage(skill) start");
     await uploadImage("skills", bot, force);
   }
+  if (mode === "enemyimg" || mode === "all") {
+    console.log("[sync] uploadImage(enemy) start");
+    await uploadImage("enemys", bot, force);
+  }
   // 同步模块数据
   if (mode === "module" || mode === "all") {
     // const raw = await bot.raw("Module:Character/data");
     console.log("[sync] uploadModuleData start");
     await uploadModuleData(bot);
     await syncSinglePage(bot, "Data:Charword.tab", "CharWord.tab.json");
-    await syncMultiPages(bot, "Char.sync.json");
-    await syncMultiPages(bot, "Skill.sync.json");
+    await syncMultiPages(bot, "Char.sync.json", true);
+    await syncMultiPages(bot, "Skill.sync.json", true);
     await syncMultiPages(bot, "CharSkill.sync.json");
     await syncMultiPages(bot, "CharHandbook.sync.json");
     await syncMultiPages(bot, "CharWord.sync.json");
   }
   if (mode === "enemy" || mode === "all") {
     console.log("[sync] sync enemy.*sync.json start");
-    await syncMultiPages(bot, "Enemy.sync.json");
+    await syncMultiPages(bot, "Enemy.sync.json", true);
   }
   if (mode === "stage" || mode === "all") {
     console.log("[sync] sync stage.*sync.json start");
-    await syncMultiPages(bot, "Stage.sync.json");
+    await syncMultiPages(bot, "Stage.sync.json", true);
   }
   if (mode === "purge" || mode === "all") {
     await purgeWithTemplate(bot, "template:NavboxEnemy");

@@ -15,7 +15,11 @@ export const unpackuTinyRipper = async (abfile: string, dir: string) => {
       alpha = /_(\d+)\.png/.test(file) ? file.replace(/_(\d+)\.png/, "_alpha_$1.png") : file.replace(".png", "_alpha.png"),
       out = file.replace(".png", "_out.png");
     outs.push([out, file + ".meta"]);
-    await exec(`magick convert "${basedir + origin}" "${basedir + alpha}" -alpha off -compose copyopacity -composite ${basedir}${out}`);
+    if (await fs.pathExists(basedir + alpha)) {
+      await exec(`magick convert "${basedir + origin}" "${basedir + alpha}" -alpha off -compose copyopacity -composite ${basedir}${out}`);
+    } else {
+      await fs.copyFile(basedir + origin, basedir + out);
+    }
   }
   await fs.ensureDir(`${TARGET_PREFIX}${dir}`);
   // 图片分割

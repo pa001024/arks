@@ -59,7 +59,7 @@ export const translateSkill = (skill: Skill) => {
         }
         return String(val);
       })
-      .replace(/攻击间隔(?:<@ba\.vdown>增大<\/>|<@ba\.vup>.*?缩短<\/>)/g, m => {
+      .replace(/攻击间隔(?:<@ba\.vdown>.*?增大<\/>|<@ba\.vup>.*?缩短<\/>)/g, m => {
         const val = props["base_attack_time"];
         return m + `(${val >= 0 ? "+" : ""}${val})`;
       })

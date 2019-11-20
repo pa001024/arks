@@ -5,7 +5,7 @@ import * as _ from "lodash";
 import async from "async";
 import { exec } from "child-process-promise";
 import * as path from "path";
-import { loadData, item_table, character_table, handbook_info_table, enemy_handbook_table, skill_table, charword_table } from "./data";
+import { loadData, item_table, character_table, handbook_info_table, enemy_handbook_table, skill_table, charword_table, enemy_table } from "./data";
 import { CharacterFlat, translateCharacter, toSkinFile } from "./parser/char";
 import { translateItem } from "./parser/item";
 import { convertObjectToLua, formatJSON, json2Tab, imgSizeOf, convertObjectToLuaV2 } from "./util";
@@ -252,6 +252,21 @@ const convertSkillIcon = async () => {
   }
 };
 
+const convertEnemyIcon = async () => {
+  const enemyNames = _.map(enemy_handbook_table, e => e.enemyId);
+  await fs.ensureDir(TARGET_PREFIX + "enemys");
+  for (let i = 0; i < enemyNames.length; i++) {
+    const name = enemyNames[i];
+    if (name) {
+      try {
+        await fs.copy(TMP_PREFIX + "DB/Sprite/" + name + ".png", TARGET_PREFIX + "enemys/" + name + ".png");
+      } catch (e) {
+        console.log(chalk.red(`[ERROR]`), `icon not found: ${name}`);
+      }
+    }
+  }
+};
+
 // 语音转换
 const convertCVAudio = async () => {
   await fs.ensureDir(TARGET_PREFIX + "cv");
@@ -332,6 +347,10 @@ export default async (cmd = "", ...options: string[]) => {
   if (cmd === "skill" || cmd === "all") {
     console.log("[build] STEP6.5: convertSkillIcon Start");
     await convertSkillIcon();
+  }
+  if (cmd === "enemy" || cmd === "all") {
+    console.log("[build] STEP6.6: convertEnemyIcon Start");
+    await convertEnemyIcon();
   }
   if (cmd === "cv" || cmd === "all") {
     console.log("[build] STEP7.7: convertCVAudio Start");

@@ -53,6 +53,7 @@ yarn build
 yarn build char
 yarn build map
 yarn build skill
+yarn build enemy
 yarn build cv
 yarn build item
 
@@ -69,6 +70,7 @@ yarn sync char
 yarn sync map
 yarn sync cv
 yarn sync skillimg
+yarn sync enemyimg
 yarn sync enemy
 yarn sync stage
 
