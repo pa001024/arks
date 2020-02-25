@@ -52,10 +52,8 @@ yarn sync book
 yarn build
 yarn build char
 yarn build map
-##yarn build skill
-yarn build enemy
-yarn build cv
-##yarn build item
+yarn build skill
+#yarn build cv
 
 # default+char+map+skill+cv+item
 yarn build all
@@ -81,13 +79,15 @@ yarn sync all
 # other
 yarn sync purge
 
-# other(export)
+# other(export) (unpack module)
 yarn build unpack avatar_hub.ab avatar
 yarn sync avatar
 yarn build unpack chr_portraits_hub.ab portrait
 yarn sync po
 yarn build unpack item_icons_hub.ab items
 yarn sync itemimg
+yarn build unpack enemy_icons_hub.ab enemys
+yarn sync enemyimg
 
 ```
 

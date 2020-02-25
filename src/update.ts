@@ -19,7 +19,13 @@ async function fetchChar(charid: string) {
   // }
   // await exec("cd tmp/ArknightsGameData && git reset origin/master --hard && git pull");
   console.log("converting ab files...");
-  const files = ["arts/avatar_hub.ab", "arts/items/item_icons_hub.ab", "arts/skills/skill_icons_hub.ab", "arts/characters/chr_portraits_hub.ab"];
+  const files = [
+    "arts/avatar_hub.ab", //
+    "arts/items/item_icons_hub.ab",
+    "arts/skills/skill_icons_hub.ab",
+    "arts/characters/chr_portraits_hub.ab",
+    "arts/enemies/enemy_icons_hub.ab",
+  ];
   await fs.ensureDir("tmp/ab");
   const base = process.env.base;
   for (let i = 0; i < files.length; i++) {
