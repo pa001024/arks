@@ -52,10 +52,10 @@ yarn sync book
 yarn build
 yarn build char
 yarn build map
-yarn build skill
+##yarn build skill
 yarn build enemy
 yarn build cv
-yarn build item
+##yarn build item
 
 # default+char+map+skill+cv+item
 yarn build all
@@ -73,6 +73,7 @@ yarn sync skillimg
 yarn sync enemyimg
 yarn sync enemy
 yarn sync stage
+yarn sync hr
 
 # default+char+itemimg+map+cv+skillimg+book+enemy+stage+tab
 yarn sync all
@@ -90,11 +91,3 @@ yarn sync itemimg
 
 ```
 
-
-## others
-
-头像文件
-https://ak-data.mooncell.wiki/assets/arts/avatar_hub.ab
-
-肖像文件
-https://ak-data.mooncell.wiki/assets/arts/characters/chr_portraits_hub.ab

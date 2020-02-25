@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import { Character, Profession } from "../data/char.i";
+import { BuildingData } from "../data/extra.i";
 import { HandBookInfo } from "../data/handbook.i";
 import { handbook_team_table, item_table, skill_table, skin_table, char_extra_table, charword_table, char_pool_table } from "../data";
 import { isEmpty, firstCase } from "../util";
@@ -412,19 +413,52 @@ export const translateCharacter = (char: Character, handbook: HandBookInfo) => {
     });
   }
 
-  // charwork 补充数据
+  // charword 补充数据
   if (charword_table[char.id + "_CN_011"]) dst.appearance = charword_table[char.id + "_CN_011"].voiceText;
 
   // extra补充数据 (基建)
-  const extra = char_extra_table[dst.name];
-  if (extra) {
-    Object.assign(dst, extra);
+  const extra = char_extra_table[char.id];
+  if (extra && extra.buildingData) {
+    dst.baseSkill = convertBuildingData(extra.buildingData);
   }
   // 池子补充数据
   const pool = char_pool_table[dst.name];
   if (typeof pool !== "undefined") {
     dst.pool = pool;
+  } else {
+    dst.pool = 1;
   }
 
   return dst;
 };
+
+const roomTypeMapping = {
+  POWER: "发电站",
+  TRADING: "贸易站",
+  HIRE: "人力办公室",
+  MEETING: "会客室",
+  DORMITORY: "宿舍",
+  MANUFACTURE: "制造站",
+  TRAINING: "训练室",
+};
+
+function convertBuildingData(bd: BuildingData[][]): BaseSkillFlat[] {
+  const dst: BaseSkillFlat[] = [];
+  for (const da of bd) {
+    const data = da[0];
+    dst.push({
+      name: data.data.buffName,
+      cond: data.cond.phase && data.cond.level === 1 ? (data.cond.phase ? `精英${data.cond.phase}/` : "") + `${data.cond.level}级` : "初始携带",
+      at: roomTypeMapping[data.data.roomType],
+      desc: data.data.description,
+    });
+    if (da.length > 1) {
+      const evolve = da[1];
+      dst[dst.length - 1].evolve = evolve.data.buffName;
+      dst[dst.length - 1].evolveCond = evolve.cond.phase && data.cond.level === 1 ? `精英${data.cond.phase}/${data.cond.level}级` : "初始携带";
+      dst[dst.length - 1].evolveDesc = evolve.data.description;
+    }
+  }
+
+  return dst;
+}

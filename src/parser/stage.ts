@@ -2,7 +2,7 @@ import * as _ from "lodash";
 import { stage_table, item_table, character_table, enemy_handbook_table, enemy_table } from "../data";
 import { DisplayDetailReward, LevelData, EnemyDbRef } from "../data/stage.i";
 import { purge } from "../util";
-import { TMP_PREFIX, TARGET_PREFIX } from "../var";
+import { TMP_PREFIX, TARGET_PREFIX, DB_PREFIX } from "../var";
 import { pathExistsSync, readFileSync } from "fs-extra";
 import chalk from "chalk";
 import { EnemyDetail, parseEnemyData } from "./enemy";
@@ -95,7 +95,7 @@ const mergeEnemyDbRef = (ref: EnemyDbRef) => {
 };
 
 const translateStageEnemy = (levelId: string, id: string) => {
-  const file = TMP_PREFIX + `ArknightsGameData/levels/${levelId.toLowerCase()}.json`;
+  const file = DB_PREFIX + `levels/${levelId.toLowerCase()}.json`;
   if (pathExistsSync(file)) {
     const level = JSON.parse(readFileSync(file, "utf-8")) as LevelData;
     return level.enemyDbRefs
@@ -116,7 +116,7 @@ const translateStageEnemy = (levelId: string, id: string) => {
 export const translateStagePreview = (stage: StageFlat) => {
   const raw = _.find(stage_table.stages, v => v.code === stage.name);
   if (raw) {
-    const src = TMP_PREFIX + `DB/Texture2D/assets/torappu/dynamicassets/arts/ui/stage/mappreviews/${raw.stageId}.png`;
+    const src = TMP_PREFIX + `DB/Texture2D/${raw.stageId}.png`;
     const dist = TARGET_PREFIX + `maps/${stage.preview}.png`;
     return [src, dist];
   }
