@@ -18,7 +18,9 @@
     "push": "ts-node src/index.ts sync push",
     "purge": "ts-node src/index.ts sync purge",
     "build:all": "ts-node src/index.ts clean && ts-node src/index.ts fetch && ts-node src/index.ts",
-    "dev": "ts-node-dev --respawn src/index.ts build"
+    "dev": "ts-node-dev --respawn src/index.ts build",
+    "edit": "ts-node src/index.ts edit",
+    "raw": "ts-node src/index.ts raw"
   },
   "dependencies": {
     "async": "^2.6.3",

@@ -147,3 +147,11 @@ export const forEachLimit = <T>(itor: T[], limit = 5, func: (t: T) => Promise<vo
 
 import { promisify } from "util";
 export const imgSizeOf: (file: string) => Promise<{ width: number; height: number }> = promisify(require("image-size"));
+
+export const encodeFileName = (name: string) => {
+  return name.replace(/[\\\/:\*"]/g, t => escape(t));
+};
+
+export const decodeFileName = (name: string) => {
+  return unescape(name);
+};

@@ -3,6 +3,8 @@ import clean from "./clean";
 import sync from "./sync";
 
 import { usage } from "yargs";
+import edit from "./edit";
+import raw from "./raw";
 
 usage("$0 <cmd> [args]")
   .scriptName("arks-parser")
@@ -57,5 +59,11 @@ usage("$0 <cmd> [args]")
   )
   .command("clean [module]", "clean online", {}, async function(argv) {
     await clean();
+  })
+  .command("edit <file>", "edit file online", {}, async function(argv) {
+    await edit(argv);
+  })
+  .command("raw <file>", "get file online", {}, async function(argv) {
+    await raw(argv);
   })
   .help().argv;

@@ -91,3 +91,9 @@ yarn sync enemyimg
 
 ```
 
+### other command
+
+```bash
+yarn raw module:Character
+yarn edit module:Character
+```
