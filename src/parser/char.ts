@@ -441,6 +441,7 @@ const roomTypeMapping = {
   MANUFACTURE: "制造站",
   TRAINING: "训练室",
   WORKSHOP: "加工站",
+  CONTROL: "控制中枢",
 };
 
 function translateCond(cond: BuildingData["cond"]) {
