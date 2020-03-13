@@ -440,7 +440,12 @@ const roomTypeMapping = {
   DORMITORY: "宿舍",
   MANUFACTURE: "制造站",
   TRAINING: "训练室",
+  WORKSHOP: "加工站",
 };
+
+function translateCond(cond: BuildingData["cond"]) {
+  return [cond.phase ? `精英${cond.phase}` : "", cond.level > 1 ? `${cond.level}级` : ""].filter(Boolean).join("/") || "初始携带";
+}
 
 function convertBuildingData(bd: BuildingData[][]): BaseSkillFlat[] {
   const dst: BaseSkillFlat[] = [];
@@ -448,14 +453,14 @@ function convertBuildingData(bd: BuildingData[][]): BaseSkillFlat[] {
     const data = da[0];
     dst.push({
       name: data.data.buffName,
-      cond: data.cond.phase && data.cond.level === 1 ? (data.cond.phase ? `精英${data.cond.phase}/` : "") + `${data.cond.level}级` : "初始携带",
+      cond: translateCond(data.cond),
       at: roomTypeMapping[data.data.roomType],
       desc: data.data.description,
     });
     if (da.length > 1) {
       const evolve = da[1];
       dst[dst.length - 1].evolve = evolve.data.buffName;
-      dst[dst.length - 1].evolveCond = evolve.cond.phase && data.cond.level === 1 ? `精英${data.cond.phase}/${data.cond.level}级` : "初始携带";
+      dst[dst.length - 1].evolveCond = translateCond(evolve.cond);
       dst[dst.length - 1].evolveDesc = evolve.data.description;
     }
   }

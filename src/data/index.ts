@@ -39,6 +39,6 @@ export const loadData = async () => {
   charword_table = JSON.parse(await fs.readFile(DB_PREFIX + "excel/charword_table.json", "utf-8"));
   const enemy_database = JSON.parse(await fs.readFile(DB_PREFIX + "levels/enemydata/enemy_database.json", "utf-8")) as EnemyDatabase;
   enemy_table = enemy_database.enemies.reduce((r, v) => ((r[v.Key] = v.Value), r), {} as EnemyTable);
-  char_extra_table = JSON.parse(await fs.readFile(TMP_PREFIX + "onlineData.json", "utf-8"));
+  if (await fs.pathExists(TMP_PREFIX + "onlineData.json")) char_extra_table = JSON.parse(await fs.readFile(TMP_PREFIX + "onlineData.json", "utf-8"));
   char_pool_table = JSON.parse(await fs.readFile("src/patch/charmethod.json", "utf-8"));
 };

@@ -11,6 +11,14 @@ async function fetchChar(charid: string) {
   return rst.data;
 }
 
+function delay(ms: number) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve();
+    }, ms);
+  });
+}
+
 (async () => {
   console.log("updating ArknightsGameData...");
   await fs.ensureDir("tmp");
@@ -18,24 +26,26 @@ async function fetchChar(charid: string) {
   //   await exec("git clone https://github.com/Perfare/ArknightsGameData.git tmp/ArknightsGameData");
   // }
   // await exec("cd tmp/ArknightsGameData && git reset origin/master --hard && git pull");
-  console.log("converting ab files...");
-  const files = [
-    "arts/avatar_hub.ab", //
-    "arts/items/item_icons_hub.ab",
-    "arts/skills/skill_icons_hub.ab",
-    "arts/characters/chr_portraits_hub.ab",
-    "arts/enemies/enemy_icons_hub.ab",
-  ];
-  await fs.ensureDir("tmp/ab");
   const base = process.env.base;
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const name = file.split("/").reduceRight(a => a);
-    console.log(`copying ${name}...`);
-    await fs.copy(`${base}/${file}`, `tmp/ab/${name}`);
-    const fpath = path.resolve("bin/ue.exe");
-    const dpath = path.resolve(`tmp/ab/${name}`);
-    await exec(`cd tmp && "${fpath}" "${dpath}"`);
+  if (base) {
+    console.log("converting ab files...");
+    const files = [
+      "arts/avatar_hub.ab", //
+      "arts/items/item_icons_hub.ab",
+      "arts/skills/skill_icons_hub.ab",
+      "arts/characters/chr_portraits_hub.ab",
+      "arts/enemies/enemy_icons_hub.ab",
+    ];
+    await fs.ensureDir("tmp/ab");
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const name = file.split("/").reduceRight(a => a);
+      console.log(`copying ${name}...`);
+      await fs.copy(`${base}/${file}`, `tmp/ab/${name}`);
+      const fpath = path.resolve("bin/ue.exe");
+      const dpath = path.resolve(`tmp/ab/${name}`);
+      await exec(`cd tmp && "${fpath}" "${dpath}"`);
+    }
   }
 
   console.log("download online data...");
@@ -47,7 +57,15 @@ async function fetchChar(charid: string) {
       const char = character_table[key];
       if (char.position !== "NONE") {
         console.log(`downloading ${key}`);
-        const data = await fetchChar(key);
+        let data: any;
+        while (!data) {
+          try {
+            data = await fetchChar(key);
+          } catch {
+            console.log(`fetch ${key} failed, retrying`);
+            await delay(1e3);
+          }
+        }
         dict[key] = data;
       }
     }

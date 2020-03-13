@@ -57,7 +57,7 @@ export const translateCharword = () => {
         r[char.name] = { id: v.charId.split("_")[2], name: char.name } as CharwordFlat;
         initr.forEach(v => (r[char.name][v] = "无"));
       }
-      r[char.name][v.voiceId.toLowerCase()] = v.voiceText.replace(/\n/g, "<br>");
+      r[char.name][v.voiceId.toLowerCase()] = v.voiceText.replace(/\n/g, "<br>").trim();
       return r;
     },
     {} as CharwordFlatTable
