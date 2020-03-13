@@ -17,6 +17,7 @@ arknights data parser and build tools
 ### install
 
 ```bash
+git clone git@github.com:Kengxxiao/ArknightsGameData.git tmp/ArknightsGameData
 yarn
 yarn update
 yarn build
@@ -34,12 +35,15 @@ vim .env
 ```
 
 for example:
-```
+
+```ini
 user=12*74
 session=o2mqh************89nc9fo
+base=D:\arknights\Android
 ```
 
 then enter
+
 ```bash
 yarn sync
 yarn sync map
@@ -47,6 +51,7 @@ yarn sync book
 ```
 
 ### all commands
+
 ```bash
 # build
 yarn build
