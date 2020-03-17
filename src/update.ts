@@ -62,6 +62,7 @@ function delay(ms: number) {
           try {
             data = await fetchChar(key);
           } catch {
+            data = null;
             console.log(`fetch ${key} failed, retrying`);
             await delay(1e3);
           }
