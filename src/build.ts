@@ -226,6 +226,12 @@ const convertCharSkill = async () => {
   });
   await fs.writeFile(TARGET_PREFIX + "CharSkill.sync.json", formatJSON(sync));
 };
+const convertCharEvolve = async () => {
+  const sync = vCharList.map(v => {
+    return { title: v.name + "/晋升强化", text: "{{#invoke:Character|getevolvecost|{{ROOTPAGENAME}}}}" };
+  });
+  await fs.writeFile(TARGET_PREFIX + "CharEvolve.sync.json", formatJSON(sync));
+};
 const convertCharWord = async () => {
   const charword = translateCharword();
   const tab = json2Tab(_.map(charword));
@@ -331,6 +337,8 @@ export default async (cmd = "", ...options: string[]) => {
     await convertCharSkill();
     console.log("[build] STEP7.6: convertCharWord Start");
     await convertCharWord();
+    console.log("[build] STEP7.7: convertCharEvolve Start");
+    await convertCharEvolve();
   }
   if (cmd === "char" || cmd === "all") {
     console.log("[build] STEP1.5: convertCharImage Start");

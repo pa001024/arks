@@ -114,7 +114,7 @@ const syncMultiPages = async (bot: WikiBot, file: string, lazy = false, base = T
   const pages = JSON.parse(await fs.readFile(base + file, "utf-8")) as Page[];
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
-    await syncPage(bot, page.title, page.text);
+    await syncPage(bot, page.title, page.text, lazy);
   }
 };
 
@@ -190,9 +190,10 @@ export default async (argv?: { [key: string]: any }) => {
     await syncSinglePage(bot, "Data:Charword.tab", "CharWord.tab.json");
     await syncMultiPages(bot, "Char.sync.json", true);
     await syncMultiPages(bot, "Skill.sync.json", true);
-    await syncMultiPages(bot, "CharSkill.sync.json");
+    await syncMultiPages(bot, "CharSkill.sync.json", true);
     await syncMultiPages(bot, "CharHandbook.sync.json");
-    await syncMultiPages(bot, "CharWord.sync.json");
+    await syncMultiPages(bot, "CharWord.sync.json", true);
+    await syncMultiPages(bot, "CharEvolve.sync.json", true);
   }
   if (mode === "enemy" || mode === "all") {
     console.log("[sync] sync enemy.*sync.json start");
