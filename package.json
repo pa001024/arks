@@ -23,7 +23,7 @@
     "raw": "ts-node src/index.ts raw"
   },
   "dependencies": {
-    "async": "^2.6.3",
+    "async": "^2.6.4",
     "axios": "^0.19.0",
     "chalk": "^2.4.2",
     "child-process-promise": "^2.2.1",
